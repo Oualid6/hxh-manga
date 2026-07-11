@@ -1,0 +1,17 @@
+{
+  "name": "hxh-manga-website",
+  "version": "1.0.0",
+  "description": "Simple and modern Hunter x Hunter manga reader website",
+  "main": "index.html",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "hunter-x-hunter",
+    "manga",
+    "reader"
+  ],
+  "author": "",
+  "license": "ISC"
+}
