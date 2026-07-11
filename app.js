@@ -191,6 +191,7 @@ function showHome(updateHash = true) {
   navChapters.classList.remove('active');
 
   document.title = 'HXH Reader';
+  trackPageView('/', 'HXH Reader');
 
   const hash = window.location.hash;
   if (hash !== '#about-section') {
@@ -209,6 +210,7 @@ function showChapterList(updateHash = true) {
   navChapters.classList.add('active');
 
   document.title = 'All Chapters | HXH Reader';
+  trackPageView('/chapters', 'All Chapters | HXH Reader');
 
   window.scrollTo({ top: 0 });
   if (updateHash) updateHashRoute();
@@ -426,9 +428,11 @@ function readChapter(chNum, updateHash = true) {
   const chData = CHAPTERS.find(c => c.number === chNum);
   const titleText = chData ? `Chapter ${chNum} — ${chData.title}` : `Chapter ${chNum}`;
   readerTitle.textContent = titleText;
-  document.title = chData
+  const newTitle = chData
     ? `Ch. ${chNum} — ${chData.title} | HXH Reader`
     : `Chapter ${chNum} | HXH Reader`;
+  document.title = newTitle;
+  trackPageView(`/chapter/${chNum}`, newTitle);
   
   // Update header/navigation UI details
   readerChIndicator.textContent = `${chNum} / ${CHAPTERS.length}`;
@@ -531,5 +535,16 @@ function navigateChapter(direction) {
   const targetCh = currentState.currentChapter + direction;
   if (targetCh >= 1 && targetCh <= CHAPTERS.length) {
     window.location.hash = `#/chapter/${targetCh}`;
+  }
+}
+
+// ── Google Analytics SPA Page View Tracker ──
+function trackPageView(viewPath, viewTitle) {
+  if (typeof gtag === 'function') {
+    gtag('event', 'page_view', {
+      page_path: viewPath,
+      page_title: viewTitle,
+      page_location: window.location.origin + viewPath
+    });
   }
 }
