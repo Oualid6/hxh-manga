@@ -13,7 +13,8 @@ const MIME_TYPES = {
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg',
   '.webp': 'image/webp',
-  '.ico': 'image/x-icon'
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml'
 };
 
 // ── WeebCentral CDN Config ──
@@ -256,12 +257,12 @@ function serveIndexWithSeo(req, res, pageType, param = null) {
     const pageUrl = `${siteUrl}${req.url}`;
     const coverUrl = `${siteUrl}/cover-image`;
 
-    let title = "Hunter × Hunter — Read Manga Online";
+    let title = "HXH Reader — Hunter × Hunter Manga";
     let desc = "Read Hunter × Hunter manga online for free. All 412+ chapters available. Written by Yoshihiro Togashi. Action, Adventure, Fantasy, Shounen.";
     let schema = {};
 
     if (pageType === 'home') {
-      title = "Hunter × Hunter — Read Manga Online Free";
+      title = "HXH Reader | Hunter × Hunter Manga Online";
       desc = "Read all 412 chapters of Hunter x Hunter manga online for free. Follow Gon and Killua's adventures in Yoshihiro Togashi's legendary series.";
       schema = {
         "@context": "https://schema.org",
@@ -287,7 +288,7 @@ function serveIndexWithSeo(req, res, pageType, param = null) {
         ]
       };
     } else if (pageType === 'chapters') {
-      title = "All Chapters — Hunter × Hunter Manga";
+      title = "All Chapters | HXH Reader";
       desc = "Browse the complete directory of Hunter × Hunter manga. Read any of the 412 chapters online, sorted by story arcs.";
       schema = {
         "@context": "https://schema.org",
@@ -311,7 +312,7 @@ function serveIndexWithSeo(req, res, pageType, param = null) {
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       
-      title = `Read Hunter × Hunter Chapter ${chNum} — ${chTitle}`;
+      title = `Ch. ${chNum} — ${chTitle} | HXH Reader`;
       desc = `Read Hunter x Hunter Chapter ${chNum}: "${chTitle}" online for free. High-quality chapter pages with proxy CDN loading.`;
       
       schema = {

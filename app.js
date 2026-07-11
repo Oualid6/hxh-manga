@@ -190,6 +190,8 @@ function showHome(updateHash = true) {
   navHome.classList.add('active');
   navChapters.classList.remove('active');
 
+  document.title = 'HXH Reader';
+
   const hash = window.location.hash;
   if (hash !== '#about-section') {
     window.scrollTo({ top: 0 });
@@ -205,6 +207,8 @@ function showChapterList(updateHash = true) {
 
   navHome.classList.remove('active');
   navChapters.classList.add('active');
+
+  document.title = 'All Chapters | HXH Reader';
 
   window.scrollTo({ top: 0 });
   if (updateHash) updateHashRoute();
@@ -422,6 +426,9 @@ function readChapter(chNum, updateHash = true) {
   const chData = CHAPTERS.find(c => c.number === chNum);
   const titleText = chData ? `Chapter ${chNum} — ${chData.title}` : `Chapter ${chNum}`;
   readerTitle.textContent = titleText;
+  document.title = chData
+    ? `Ch. ${chNum} — ${chData.title} | HXH Reader`
+    : `Chapter ${chNum} | HXH Reader`;
   
   // Update header/navigation UI details
   readerChIndicator.textContent = `${chNum} / ${CHAPTERS.length}`;

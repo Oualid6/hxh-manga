@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Dark background -->
+  <rect width="32" height="32" rx="5" fill="#0a0c12"/>
+  <!-- HXH text -->
+  <text
+    x="16"
+    y="19"
+    text-anchor="middle"
+    font-family="'Arial Black', 'Helvetica Neue', Arial, sans-serif"
+    font-size="11"
+    font-weight="900"
+    fill="#FFFFFF"
+    letter-spacing="-0.5"
+  >HXH</text>
+  <!-- Green accent underline -->
+  <rect x="5" y="22" width="22" height="2.5" rx="1.25" fill="#7ED321"/>
+</svg>
