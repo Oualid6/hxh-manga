@@ -199,6 +199,134 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .mobile-menu a:hover { background: var(--bg-3); color: var(--text); }
 
 /* ════════════════════════════════════════
+   LANGUAGE SWITCHER
+   ════════════════════════════════════════ */
+.lang-switcher {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Trigger button */
+.lang-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: .8rem;
+  font-weight: 600;
+  letter-spacing: .5px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.lang-btn:hover {
+  border-color: var(--gold);
+  color: var(--text);
+  background: rgba(253,216,53,.06);
+}
+.lang-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.lang-globe {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  color: var(--teal);
+}
+.lang-code {
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  color: var(--gold);
+}
+.lang-chevron {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+  transition: transform .25s cubic-bezier(.4,0,.2,1);
+}
+.lang-switcher.open .lang-chevron {
+  transform: rotate(180deg);
+}
+.lang-btn[aria-expanded="true"] {
+  border-color: var(--gold);
+  background: rgba(253,216,53,.08);
+}
+
+/* Dropdown list */
+.lang-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 168px;
+  background: var(--bg-2);
+  border: 1px solid var(--border-h);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(253,216,53,.06);
+  list-style: none;
+  padding: 6px;
+  z-index: 2000;
+  opacity: 0;
+  transform: translateY(-8px) scale(.97);
+  pointer-events: none;
+  transition:
+    opacity .2s cubic-bezier(.4,0,.2,1),
+    transform .2s cubic-bezier(.4,0,.2,1);
+}
+.lang-switcher.open .lang-menu {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: all;
+}
+
+/* Dropdown items */
+.lang-menu li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  color: var(--text-2);
+  font-size: .875rem;
+}
+.lang-menu li:hover,
+.lang-menu li:focus {
+  background: var(--bg-3);
+  color: var(--text);
+  outline: none;
+}
+.lang-menu li.lang-active {
+  background: rgba(253,216,53,.1);
+  color: var(--gold);
+}
+.lang-menu li.lang-active .lang-tag {
+  color: var(--gold);
+}
+.lang-flag {
+  font-size: 1.1rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.lang-name {
+  flex: 1;
+  font-weight: 500;
+}
+.lang-tag {
+  font-size: .7rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  color: var(--text-3);
+}
+
+/* ════════════════════════════════════════
    HERO SECTION
    ════════════════════════════════════════ */
 .hero {
@@ -983,7 +1111,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   margin: 0 auto;
   padding: 60px 24px 40px;
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
   gap: 40px;
 }
 .footer-brand .nav-logo {
@@ -1089,7 +1217,27 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 @media (max-width: 640px) {
   .nav-links  { display: none; }
   .nav-search { display: none; }
-  .hamburger  { display: flex; }
+  .nav-inner  { gap: 0; }
+
+  /* Logo stays left */
+  .nav-logo   { order: 1; }
+
+  /* Lang switcher sits center between logo and hamburger */
+  .lang-switcher {
+    order: 2;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  /* On mobile, dropdown opens leftward from the button instead of right,
+     so it never clips off the edge of a narrow screen */
+  .lang-menu {
+    right: auto;
+    left: 0;
+  }
+
+  /* Hamburger stays far right */
+  .hamburger  { order: 3; display: flex; }
+
   .hero-title { font-size: 2.2rem; letter-spacing: -1px; }
   .arcs-grid  { grid-template-columns: 1fr; }
   .recent-grid { grid-template-columns: 1fr 1fr; }
@@ -1124,4 +1272,59 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 @keyframes spin {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
+}
+
+/* ════════════════════════════════════════
+   LEGAL PAGES
+   ════════════════════════════════════════ */
+.legal-section {
+  padding: 120px 24px 80px;
+  max-width: 800px;
+  margin: 0 auto;
+  min-height: 70vh;
+}
+.legal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  box-shadow: var(--shadow-md);
+}
+.legal-card h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 24px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+}
+.legal-card h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 32px;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+.legal-card p {
+  color: var(--text-2);
+  line-height: 1.8;
+  margin-bottom: 16px;
+  font-size: 0.95rem;
+}
+.legal-card ul {
+  margin-left: 24px;
+  margin-bottom: 16px;
+  color: var(--text-2);
+}
+.legal-card li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+@media (max-width: 640px) {
+  .legal-card {
+    padding: 24px 16px;
+  }
+  .legal-card h1 {
+    font-size: 1.6rem;
+  }
 }

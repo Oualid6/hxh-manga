@@ -517,6 +517,27 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  if (pathname === '/privacy') {
+    res.writeHead(301, { 'Location': '/privacy.html' });
+    res.end();
+    return;
+  }
+  if (pathname === '/terms') {
+    res.writeHead(301, { 'Location': '/terms.html' });
+    res.end();
+    return;
+  }
+  if (pathname === '/dmca') {
+    res.writeHead(301, { 'Location': '/dmca.html' });
+    res.end();
+    return;
+  }
+  if (pathname === '/disclaimer') {
+    res.writeHead(301, { 'Location': '/disclaimer.html' });
+    res.end();
+    return;
+  }
+
   // ── 6. Static File Server Route with SPA Fallback ──
   const relativePath = pathname.slice(1);
   const filePath = path.join(__dirname, relativePath);
