@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+
   <!-- Google Analytics (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-QWFS22DL0F"></script>
   <script>
@@ -13,9 +13,13 @@
     gtag('config', 'G-QWFS22DL0F', { send_page_view: false });
   </script>
 
-  <title>HXH Reader</title>
-  <meta name="description" content="Read Hunter × Hunter manga online for free. All 412+ chapters available. Written by Yoshihiro Togashi. Action, Adventure, Fantasy, Shounen." />
-  <meta name="keywords" content="Hunter x Hunter, HxH, manga, read online, Togashi, Gon, Killua" />
+  <!-- Primary SEO Meta Tags (overridden dynamically by server.js for each page) -->
+  <title>Hunter x Hunter Manga Online — Read Free | HXH Reader</title>
+  <meta name="description" content="Read Hunter x Hunter manga online for free. All 412+ chapters of Togashi's legendary series featuring Gon, Killua & Nen. Updated regularly." />
+  <meta name="keywords" content="Hunter x Hunter manga online, read Hunter x Hunter, HxH chapters, Gon Freecss, Killua Zoldyck, Kurapika, Hisoka, Nen, Chimera Ant Arc, Dark Continent, manga English" />
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+  <meta name="author" content="Yoshihiro Togashi" />
+  <meta name="theme-color" content="#111111" />
   <link rel="canonical" href="/placeholder-canonical" />
 
   <!-- Favicons -->
@@ -24,51 +28,59 @@
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2" />
   <link rel="shortcut icon" href="/favicon.ico?v=2" />
-  
+
   <!-- Open Graph -->
-  <meta property="og:title" content="Hunter × Hunter — Read Manga Online" />
-  <meta property="og:description" content="Read all Hunter × Hunter chapters online for free." />
+  <meta property="og:title" content="Hunter x Hunter Manga Online — Read Free | HXH Reader" />
+  <meta property="og:description" content="Read Hunter x Hunter manga online for free. All 412+ chapters of Togashi's legendary series featuring Gon, Killua & Nen. Updated regularly." />
   <meta property="og:image" content="/cover-image" />
+  <meta property="og:image:alt" content="Hunter x Hunter manga cover by Yoshihiro Togashi" />
+  <meta property="og:image:width" content="460" />
+  <meta property="og:image:height" content="650" />
   <meta property="og:url" content="/placeholder-url" />
   <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="HXH Reader" />
+  <meta property="og:locale" content="en_US" />
 
-  <!-- Twitter -->
+  <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Hunter × Hunter — Read Manga Online" />
-  <meta name="twitter:description" content="Read all Hunter × Hunter chapters online for free." />
+  <meta name="twitter:title" content="Hunter x Hunter Manga Online — Read Free | HXH Reader" />
+  <meta name="twitter:description" content="Read Hunter x Hunter manga online for free. All 412+ chapters of Togashi's legendary series featuring Gon, Killua & Nen. Updated regularly." />
   <meta name="twitter:image" content="/cover-image" />
+  <meta name="twitter:image:alt" content="Hunter x Hunter manga cover by Yoshihiro Togashi" />
 
-  <!-- Structured Data Schema.org -->
+  <!-- Structured Data Schema.org (replaced dynamically by server.js) -->
   <script type="application/ld+json" id="structured-data">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Hunter × Hunter Manga Online",
+      "name": "HXH Reader — Hunter x Hunter Manga Online",
       "url": "/"
     }
   </script>
 
+  <!-- Preconnect for performance -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
 
 <!-- ═══════════ NAVIGATION ═══════════ -->
 <header class="navbar" id="navbar">
   <div class="nav-inner">
-    <a href="#/" class="nav-logo" id="nav-logo-btn">
+    <a href="#/" class="nav-logo" id="nav-logo-btn" aria-label="HXH Reader — Hunter x Hunter Manga Online — Home">
       <span class="logo-hx">HX</span><span class="logo-h">H</span>
     </a>
-    <nav class="nav-links">
+    <nav class="nav-links" aria-label="Primary navigation">
       <a href="#/" class="nav-link active" id="nav-home" data-i18n="nav_home">Home</a>
       <a href="#/chapters" class="nav-link" id="nav-chapters" data-i18n="nav_chapters">Chapters</a>
       <a href="#about-section" class="nav-link" data-i18n="nav_about">About</a>
     </nav>
     <div class="nav-search">
-      <input type="text" id="chapter-search" placeholder="Search chapters…" data-i18n-placeholder="search_placeholder" oninput="filterChapters(this.value)" />
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <label for="chapter-search" class="sr-only">Search Hunter x Hunter chapters</label>
+      <input type="search" id="chapter-search" placeholder="Search chapters…" data-i18n-placeholder="search_placeholder" oninput="filterChapters(this.value)" aria-label="Search Hunter x Hunter chapters" />
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
     </div>
 
     <!-- ── Language Switcher ── -->
@@ -81,7 +93,6 @@
         aria-label="Select language"
         onclick="toggleLangMenu(event)"
       >
-        <!-- Globe icon -->
         <svg class="lang-globe" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
           <circle cx="12" cy="12" r="10"/>
           <line x1="2" y1="12" x2="22" y2="12"/>
@@ -103,11 +114,11 @@
       </ul>
     </div>
 
-    <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle menu" aria-expanded="false">
+    <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </div>
-  <div class="mobile-menu" id="mobile-menu">
+  <div class="mobile-menu" id="mobile-menu" role="navigation" aria-label="Mobile navigation">
     <a href="#/" data-i18n="nav_home">Home</a>
     <a href="#/chapters" data-i18n="nav_chapters">Chapters</a>
     <a href="#about-section" data-i18n="nav_about">About</a>
@@ -118,42 +129,43 @@
 <main id="home-view">
 
   <!-- Hero -->
-  <section class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-particles" id="hero-particles"></div>
+  <section class="hero" aria-label="Hunter x Hunter manga online — hero section">
+    <div class="hero-bg" aria-hidden="true"></div>
+    <div class="hero-particles" id="hero-particles" aria-hidden="true"></div>
     <div class="hero-content">
       <div class="hero-badge">
-        <span class="badge-dot"></span>
+        <span class="badge-dot" aria-hidden="true"></span>
         <span data-i18n="hero_ongoing">Ongoing · Chapter 412</span>
       </div>
-      <h1 class="hero-title">
-        <span class="title-hunter">HUNTER</span>
-        <span class="title-x">×</span>
-        <span class="title-hunter">HUNTER</span>
+      <!-- H1: Styled visually as "HUNTER × HUNTER" but carries full SEO keyword via aria-label -->
+      <h1 class="hero-title" aria-label="Hunter x Hunter Manga Online" data-i18n-aria-label="seo_h1">
+        <span class="title-hunter" aria-hidden="true">HUNTER</span>
+        <span class="title-x" aria-hidden="true">×</span>
+        <span class="title-hunter" aria-hidden="true">HUNTER</span>
       </h1>
       <p class="hero-subtitle"><span data-i18n="hero_by">by</span> <strong>Yoshihiro Togashi</strong></p>
       <p class="hero-desc" data-i18n="hero_desc">Hunters are a special breed, dedicated to tracking down treasures, magical beasts, and even other men. But such pursuits require a license, and less than one in a hundred thousand can pass the grueling qualification exam.</p>
       <div class="hero-actions">
-        <button class="btn-primary" onclick="readChapter(1)">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <button class="btn-primary" onclick="readChapter(1)" aria-label="Start reading Hunter x Hunter from Chapter 1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
           <span data-i18n="btn_start_reading">Start Reading</span>
         </button>
-        <button class="btn-secondary" onclick="readChapter(412)">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
+        <button class="btn-secondary" onclick="readChapter(412)" aria-label="Read Hunter x Hunter latest chapter — Chapter 412">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
           <span data-i18n="btn_latest_chapter">Latest Chapter</span>
         </button>
       </div>
-      <div class="hero-stats">
+      <div class="hero-stats" aria-label="Hunter x Hunter manga statistics">
         <div class="stat">
           <span class="stat-num">412</span>
           <span class="stat-label" data-i18n="stats_chapters">Chapters</span>
         </div>
-        <div class="stat-divider"></div>
+        <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat">
           <span class="stat-num">1998</span>
           <span class="stat-label" data-i18n="stats_since">Since</span>
         </div>
-        <div class="stat-divider"></div>
+        <div class="stat-divider" aria-hidden="true"></div>
         <div class="stat">
           <span class="stat-num">9.1</span>
           <span class="stat-label" data-i18n="stats_rating">Rating</span>
@@ -161,9 +173,16 @@
       </div>
     </div>
     <div class="hero-cover">
-      <div class="cover-glow"></div>
-      <img src="/cover-image" alt="Hunter × Hunter manga cover" class="cover-img" id="hero-cover-img" />
-      <div class="cover-tags">
+      <div class="cover-glow" aria-hidden="true"></div>
+      <img src="/cover-image"
+           alt="Hunter x Hunter Volume 1 manga cover by Yoshihiro Togashi — read online free"
+           data-i18n-alt="alt_cover_home"
+           class="cover-img"
+           id="hero-cover-img"
+           width="280"
+           height="400"
+           fetchpriority="high" />
+      <div class="cover-tags" aria-label="Manga genres">
         <span class="tag" data-i18n="tag_action">Action</span>
         <span class="tag" data-i18n="tag_adventure">Adventure</span>
         <span class="tag" data-i18n="tag_fantasy">Fantasy</span>
@@ -173,30 +192,77 @@
     </div>
   </section>
 
+  <!-- SEO Intro Section -->
+  <section class="seo-intro" id="seo-intro" aria-label="About Hunter x Hunter manga">
+    <div class="seo-intro-inner">
+      <h2 class="seo-intro-title" data-i18n="seo_intro_title">Read Hunter x Hunter Manga Online for Free</h2>
+      <div class="seo-intro-content">
+        <p data-i18n="seo_intro_p1">
+          Welcome to <strong>HXH Reader</strong> — your ultimate destination to <strong>read Hunter x Hunter manga online</strong> in English, completely free. Yoshihiro Togashi's masterpiece has captivated manga fans worldwide since its debut in <em>Weekly Shōnen Jump</em> in 1998, and all <strong>412+ Hunter x Hunter chapters</strong> are available here with high-quality scans and a clean, distraction-free reading experience.
+        </p>
+
+        <h3 data-i18n="seo_intro_h_what">What Is Hunter x Hunter?</h3>
+        <p data-i18n="seo_intro_p2">
+          <strong>Hunter x Hunter</strong> (also written as <em>HxH</em> or <em>Hunter × Hunter</em>) is a Japanese manga series written and illustrated by Yoshihiro Togashi. The story follows <strong>Gon Freecss</strong>, a young boy who discovers his long-absent father is actually one of the world's greatest Hunters — an elite class of licensed professionals. Determined to find his father and become a Hunter himself, Gon embarks on a perilous journey that will test every limit of his strength and spirit.
+        </p>
+        <p data-i18n="seo_intro_p3">
+          Along the way, Gon befriends <strong>Killua Zoldyck</strong>, a prodigious assassin from a legendary clan; <strong>Kurapika</strong>, the last survivor of the Kurta clan seeking revenge against the Phantom Troupe; and <strong>Leorio</strong>, an ambitious young man working toward becoming a doctor. Together, they navigate a world filled with danger, politics, and the mysterious energy known as <strong>Nen</strong> — a power system that allows skilled individuals to channel their life force for extraordinary abilities.
+        </p>
+
+        <h3 data-i18n="seo_intro_h_arcs">Major Hunter x Hunter Story Arcs</h3>
+        <p data-i18n="seo_intro_p4">
+          The series spans nine major story arcs, each expanding the world and raising the emotional and narrative stakes. The <strong>Hunter Exam Arc</strong> introduces our heroes through the grueling licensing examination. The fan-favorite <strong>Yorknew City Arc</strong> sees Kurapika confront the Phantom Troupe in a tense cat-and-mouse thriller. The acclaimed <strong>Chimera Ant Arc</strong> — covering Chapters 186 to 318 — is widely regarded as one of the greatest manga arcs ever written, depicting a harrowing war between humanity and a new species of Nen-wielding insects.
+        </p>
+        <p data-i18n="seo_intro_p5">
+          The series continues into the <strong>Dark Continent Expedition</strong> and the sprawling <strong>Succession Contest Arc</strong>, which unfolds across the Black Whale ship as the princes of the Kakin Empire battle for the throne. The legendary antagonist <strong>Hisoka</strong> weaves through every arc, adding an electrifying sense of unpredictability to an already complex narrative. Togashi's world — the <strong>Hunter Association</strong>, the concept of Nen, and the mystery of what lies beyond the known map — is one of the richest in all of manga.
+        </p>
+
+        <h3 data-i18n="seo_intro_h_read">Read Hunter x Hunter Chapters Online — Free &amp; In English</h3>
+        <p data-i18n="seo_intro_p6">
+          Every <strong>Hunter x Hunter chapter</strong> on HXH Reader loads with high-quality images, fast page transitions, and a seamless reading experience on both desktop and mobile. Whether you're catching up from Chapter 1: The Day of Departure, revisiting the legendary Chapter 186 where the Chimera Ant Arc begins, or reading the latest chapter, HXH Reader delivers a clean, ad-light reading environment.
+        </p>
+        <p data-i18n="seo_intro_p7">
+          Our <strong>Hunter x Hunter manga updates</strong> are added as soon as new chapters release. You can also browse the full Hunter x Hunter chapter list sorted by story arc or chapter number, and use the search feature to jump directly to any chapter. No registration, no paywall — just pure manga.
+        </p>
+      </div>
+    </div>
+  </section>
+
   <!-- Arc Navigator -->
-  <section class="arcs-section">
+  <section class="arcs-section" aria-label="Hunter x Hunter story arcs">
     <div class="section-header">
       <h2 class="section-title" data-i18n="arcs_title">Story Arcs</h2>
       <p class="section-sub" data-i18n="arcs_sub">Journey through the world of Hunters</p>
     </div>
-    <div class="arcs-grid" id="arcs-grid">
+    <div class="arcs-grid" id="arcs-grid" role="list">
       <!-- filled by JS -->
     </div>
   </section>
 
   <!-- Recent Chapters -->
-  <section class="recent-section">
+  <section class="recent-section" aria-label="Latest Hunter x Hunter chapters">
     <div class="section-header">
       <h2 class="section-title" data-i18n="latest_chapters_title">Latest Chapters</h2>
-      <button class="see-all-btn" onclick="showChapterList()" data-i18n="view_all_btn">View All →</button>
+      <button class="see-all-btn" onclick="showChapterList()" data-i18n="view_all_btn" aria-label="View all Hunter x Hunter chapters">View All →</button>
     </div>
-    <div class="recent-grid" id="recent-grid">
+    <div class="recent-grid" id="recent-grid" role="list">
+      <!-- filled by JS -->
+    </div>
+  </section>
+
+  <!-- Popular Chapters -->
+  <section class="popular-section" aria-label="Popular Hunter x Hunter chapters">
+    <div class="section-header">
+      <h2 class="section-title">Popular Chapters</h2>
+      <p class="section-sub">Fan-favourite chapters to jump straight into</p>
+    </div>
+    <div class="popular-grid" id="popular-grid" role="list">
       <!-- filled by JS -->
     </div>
   </section>
 
   <!-- About -->
-  <section class="about-section" id="about-section">
+  <section class="about-section" id="about-section" aria-label="About Hunter x Hunter">
     <div class="about-inner">
       <div class="about-text">
         <h2 data-i18n="about_title">About Hunter × Hunter</h2>
@@ -210,7 +276,53 @@
         </div>
       </div>
       <div class="about-image">
-        <img src="/cover-image" alt="HxH thumbnail" style="border-radius: 8px; max-width: 160px;" />
+        <img src="/cover-image"
+             alt="Hunter x Hunter manga cover art — Gon Freecss by Yoshihiro Togashi"
+             data-i18n-alt="alt_cover_about"
+             loading="lazy"
+             width="160"
+             height="228"
+             style="border-radius: 8px; max-width: 160px;" />
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ Section -->
+  <section class="faq-section" id="faq-section" aria-label="Frequently asked questions about Hunter x Hunter manga">
+    <div class="faq-inner">
+      <h2 class="faq-title" data-i18n="faq_title">Frequently Asked Questions</h2>
+      <p class="faq-sub" data-i18n="faq_sub">Everything you need to know about reading Hunter x Hunter manga online</p>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary class="faq-question" data-i18n="faq_q1">Where can I read Hunter x Hunter manga online?</summary>
+          <div class="faq-answer">
+            <p data-i18n="faq_a1">You can read <strong>Hunter x Hunter manga online</strong> for free right here on HXH Reader. All 412+ chapters are available in English with high-quality scans and a clean reading interface. No registration or subscription required.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question" data-i18n="faq_q2">Is Hunter x Hunter manga still ongoing?</summary>
+          <div class="faq-answer">
+            <p data-i18n="faq_a2">Yes, <strong>Hunter x Hunter</strong> is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022 after a long hiatus. As of 2026, the latest chapter is <a href="#/chapter/412" onclick="readChapter(412)">Chapter 412</a>, continuing the Succession Contest Arc aboard the Black Whale ship.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question" data-i18n="faq_q3">What is the latest Hunter x Hunter chapter?</summary>
+          <div class="faq-answer">
+            <p data-i18n="faq_a3">The latest Hunter x Hunter chapter is <a href="#/chapter/412" onclick="readChapter(412)"><strong>Chapter 412</strong></a>. New Hunter x Hunter manga updates are added to HXH Reader as soon as they are released by Yoshihiro Togashi in Weekly Shōnen Jump.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question" data-i18n="faq_q4">Can I read Hunter x Hunter in English for free?</summary>
+          <div class="faq-answer">
+            <p data-i18n="faq_a4">Yes! HXH Reader provides all <strong>Hunter x Hunter chapters in English</strong> for free. You can read from <a href="#/chapter/1" onclick="readChapter(1)">Chapter 1: The Day of Departure</a> all the way to the latest chapter without any registration or subscription.</p>
+          </div>
+        </details>
+        <details class="faq-item">
+          <summary class="faq-question" data-i18n="faq_q5">What are the main Hunter x Hunter story arcs?</summary>
+          <div class="faq-answer">
+            <p data-i18n="faq_a5">Hunter x Hunter has 9 major story arcs: <strong>Hunter Exam Arc</strong> (Ch. 1–38), <strong>Zoldyck Family Arc</strong> (Ch. 39–43), <strong>Heavens Arena Arc</strong> (Ch. 44–63), <strong>Yorknew City Arc</strong> (Ch. 64–119), <strong>Greed Island Arc</strong> (Ch. 120–185), <strong>Chimera Ant Arc</strong> (Ch. 186–318), <strong>13th Chairman Election Arc</strong> (Ch. 319–339), <strong>Dark Continent Expedition</strong> (Ch. 340–348), and the ongoing <strong>Succession Contest Arc</strong> (Ch. 349–412).</p>
+          </div>
+        </details>
       </div>
     </div>
   </section>
@@ -219,17 +331,25 @@
 
 <!-- ═══════════ CHAPTER LIST VIEW ═══════════ -->
 <div id="chapter-list-view" class="hidden">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" id="chapters-breadcrumb" aria-label="Breadcrumb navigation">
+    <ol class="breadcrumb-list">
+      <li class="breadcrumb-item"><a href="#/" onclick="showHome()">Home</a></li>
+      <li class="breadcrumb-item breadcrumb-current" aria-current="page">All Chapters</li>
+    </ol>
+  </nav>
   <section class="cl-header">
     <div class="cl-header-inner">
       <h1 data-i18n="cl_title">All Chapters</h1>
       <p data-i18n="cl_subtitle">412 chapters available · Ongoing</p>
       <div class="cl-controls">
         <div class="cl-search-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="cl-search" placeholder="Search chapter number or title…" data-i18n-placeholder="cl_search_placeholder" oninput="filterChapters(this.value)" />
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <label for="cl-search" class="sr-only">Search Hunter x Hunter chapters by number or title</label>
+          <input type="search" id="cl-search" placeholder="Search chapter number or title…" data-i18n-placeholder="cl_search_placeholder" oninput="filterChapters(this.value)" aria-label="Search Hunter x Hunter chapters by number or title" />
         </div>
-        <button class="sort-btn" id="sort-btn" onclick="toggleSort()">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
+        <button class="sort-btn" id="sort-btn" onclick="toggleSort()" aria-label="Toggle chapter sort order">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M7 12h10M11 18h2"/></svg>
           <span id="sort-label" data-i18n="sort_newest">Newest First</span>
         </button>
       </div>
@@ -240,10 +360,10 @@
       <table class="cl-table" id="cl-table">
         <thead>
           <tr>
-            <th>#</th>
-            <th data-i18n="th_title">Chapter Title</th>
-            <th class="hide-mobile" data-i18n="th_date">Date</th>
-            <th data-i18n="th_read">Read</th>
+            <th scope="col">#</th>
+            <th scope="col" data-i18n="th_title">Chapter Title</th>
+            <th scope="col" class="hide-mobile" data-i18n="th_date">Date</th>
+            <th scope="col" data-i18n="th_read">Read</th>
           </tr>
         </thead>
         <tbody id="cl-tbody">
@@ -256,16 +376,25 @@
 
 <!-- ═══════════ CHAPTER READER VIEW ═══════════ -->
 <div id="reader-view" class="hidden">
+  <!-- Breadcrumb -->
+  <nav class="breadcrumb" id="reader-breadcrumb" aria-label="Breadcrumb navigation">
+    <ol class="breadcrumb-list">
+      <li class="breadcrumb-item"><a href="#/" onclick="showHome()">Home</a></li>
+      <li class="breadcrumb-item"><a href="#/chapters" onclick="showChapterList()">All Chapters</a></li>
+      <li class="breadcrumb-item breadcrumb-current" id="reader-breadcrumb-current" aria-current="page">Chapter 1</li>
+    </ol>
+  </nav>
+
   <div class="reader-topbar">
-    <a href="#/chapters" class="reader-back">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <a href="#/chapters" class="reader-back" aria-label="Back to chapter list" onclick="showChapterList()">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
       <span data-i18n="reader_back">Back</span>
     </a>
     <div class="reader-chapter-title" id="reader-title">Chapter 1</div>
     <div class="reader-nav-btns">
-      <button id="prev-ch-btn" onclick="navigateChapter(-1)" data-i18n="reader_prev">‹ Prev</button>
-      <span class="reader-ch-indicator" id="reader-ch-indicator">1 / 412</span>
-      <button id="next-ch-btn" onclick="navigateChapter(1)" data-i18n="reader_next">Next ›</button>
+      <button id="prev-ch-btn" onclick="navigateChapter(-1)" data-i18n="reader_prev" aria-label="Previous chapter">‹ Prev</button>
+      <span class="reader-ch-indicator" id="reader-ch-indicator" aria-live="polite">1 / 412</span>
+      <button id="next-ch-btn" onclick="navigateChapter(1)" data-i18n="reader_next" aria-label="Next chapter">Next ›</button>
     </div>
   </div>
 
@@ -273,49 +402,56 @@
     <!-- filled by JS -->
   </div>
 
-  <div class="reader-pages" id="reader-pages">
+  <div class="reader-pages" id="reader-pages" aria-label="Manga chapter pages">
+    <!-- filled by JS -->
+  </div>
+
+  <!-- Suggested Chapters -->
+  <div class="suggested-section" id="suggested-section" aria-label="Suggested chapters to read next">
     <!-- filled by JS -->
   </div>
 
   <div class="reader-bottom-nav">
-    <button class="btn-nav" id="prev-ch-btn2" onclick="navigateChapter(-1)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    <button class="btn-nav" id="prev-ch-btn2" onclick="navigateChapter(-1)" aria-label="Go to previous chapter">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
       <span data-i18n="reader_prev_ch">Previous Chapter</span>
     </button>
-    <a href="#/chapters" class="btn-nav">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    <a href="#/chapters" class="btn-nav" onclick="showChapterList()" aria-label="View all Hunter x Hunter chapters">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span data-i18n="reader_list">Chapter List</span>
     </a>
-    <button class="btn-nav" id="next-ch-btn2" onclick="navigateChapter(1)">
+    <button class="btn-nav" id="next-ch-btn2" onclick="navigateChapter(1)" aria-label="Go to next chapter">
       <span data-i18n="reader_next_ch">Next Chapter</span>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
   </div>
 </div>
 
 <!-- ═══════════ FOOTER ═══════════ -->
-<footer class="site-footer">
+<footer class="site-footer" aria-label="Site footer">
   <div class="footer-inner">
     <div class="footer-brand">
-      <span class="logo-hx">HX</span><span class="logo-h">H</span>
-      <p data-i18n="footer_desc">An unofficial fan site for Hunter × Hunter.<br/>All content belongs to Yoshihiro Togashi & Shueisha.</p>
+      <a href="#/" class="nav-logo" aria-label="HXH Reader home"><span class="logo-hx">HX</span><span class="logo-h">H</span></a>
+      <p data-i18n="footer_desc">An unofficial fan site for Hunter × Hunter.<br/>All content belongs to Yoshihiro Togashi &amp; Shueisha.</p>
     </div>
     <div class="footer-links">
-      <h4 data-i18n="footer_navigate">Navigate</h4>
+      <h3 data-i18n="footer_navigate">Navigate</h3>
       <a href="#/" data-i18n="nav_home">Home</a>
       <a href="#/chapters" data-i18n="nav_chapters">All Chapters</a>
       <a href="#about-section" data-i18n="nav_about">About</a>
+      <a href="/contact.html">Contact</a>
     </div>
     <div class="footer-links">
-      <h4 data-i18n="footer_quick_read">Quick Read</h4>
-      <a href="#/chapter/1"><span data-i18n="chapter_word">Chapter</span> 1</a>
-      <a href="#/chapter/100"><span data-i18n="chapter_word">Chapter</span> 100</a>
-      <a href="#/chapter/412"><span data-i18n="chapter_word">Chapter</span> 412</a>
+      <h3 data-i18n="footer_quick_read">Quick Read</h3>
+      <a href="#/chapter/1" onclick="readChapter(1)">Chapter 1 — Start</a>
+      <a href="#/chapter/186" onclick="readChapter(186)">Chapter 186 — Chimera Ant</a>
+      <a href="#/chapter/349" onclick="readChapter(349)">Chapter 349 — Succession</a>
+      <a href="#/chapter/412" onclick="readChapter(412)">Chapter 412 — Latest</a>
     </div>
     <div class="footer-links">
-      <h4 data-i18n="footer_legal">Legal</h4>
+      <h3 data-i18n="footer_legal">Legal</h3>
       <a href="/privacy.html" data-i18n="legal_privacy">Privacy Policy</a>
-      <a href="/terms.html" data-i18n="legal_terms">Terms & Conditions</a>
+      <a href="/terms.html" data-i18n="legal_terms">Terms &amp; Conditions</a>
       <a href="/dmca.html" data-i18n="legal_dmca">DMCA</a>
       <a href="/disclaimer.html" data-i18n="legal_disclaimer">Disclaimer</a>
     </div>
@@ -325,10 +461,13 @@
   </div>
 </footer>
 
-<!-- Scroll-to-top -->
-<button class="scroll-top" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top">↑</button>
+<!-- Visually hidden helper for screen readers -->
+<style>.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}</style>
 
-<script src="chapters.js"></script>
-<script src="app.js"></script>
+<!-- Scroll-to-top -->
+<button class="scroll-top" id="scroll-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Back to top" aria-label="Scroll back to top">↑</button>
+
+<script src="/chapters.js"></script>
+<script src="/app.js"></script>
 </body>
 </html>

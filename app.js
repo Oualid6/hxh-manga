@@ -125,6 +125,7 @@ const scrollTopBtn = document.getElementById('scroll-top-btn');
 document.addEventListener('DOMContentLoaded', () => {
   renderArcs();
   renderRecentChapters();
+  renderPopularChapters();
   renderChapterTable();
   setupParticles();
   setupScrollHandlers();
@@ -154,16 +155,35 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Routing & Hash Handling ──
 function handleHashRoute() {
   const hash = window.location.hash;
-  if (hash.startsWith('#/chapter/')) {
-    const chNum = parseInt(hash.replace('#/chapter/', ''));
+  const pathname = window.location.pathname;
+
+  let routePath = '';
+  if (hash && hash !== '#' && hash !== '#/') {
+    // Strip hash prefix
+    routePath = hash.substring(1); // e.g. "/chapters" or "/chapter/186"
+  } else {
+    // Fall back to parsing pathname
+    // Stripping any language prefix from pathname
+    let cleanPath = pathname;
+    const parts = pathname.split('/').filter(Boolean);
+    const SUPPORTED_LANGS = ['en', 'es', 'fr', 'de', 'tr', 'ja', 'ar'];
+    if (parts.length > 0 && SUPPORTED_LANGS.includes(parts[0].toLowerCase())) {
+      parts.shift();
+      cleanPath = '/' + parts.join('/');
+    }
+    routePath = cleanPath;
+  }
+
+  if (routePath.startsWith('/chapter/')) {
+    const chNum = parseInt(routePath.replace('/chapter/', ''));
     if (!isNaN(chNum) && chNum >= 1 && chNum <= 412) {
       readChapter(chNum, false);
       return;
     }
-  } else if (hash === '#/chapters') {
+  } else if (routePath === '/chapters') {
     showChapterList(false);
     return;
-  } else if (hash === '#about-section') {
+  } else if (routePath === '/#about-section' || hash === '#about-section') {
     showHome(false);
     setTimeout(() => {
       const el = document.getElementById('about-section');
@@ -198,15 +218,13 @@ function showHome(updateHash = true) {
   navHome.classList.add('active');
   navChapters.classList.remove('active');
 
-  const activeTitle = t('tab_title_home');
-  document.title = activeTitle;
-  trackPageView('/', activeTitle);
-
   const hash = window.location.hash;
   if (hash !== '#about-section') {
     window.scrollTo({ top: 0 });
   }
   if (updateHash) updateHashRoute();
+  updateClientSeo();
+  trackPageView('/', document.title);
 }
 
 function showChapterList(updateHash = true) {
@@ -218,13 +236,11 @@ function showChapterList(updateHash = true) {
   navHome.classList.remove('active');
   navChapters.classList.add('active');
 
-  const activeTitle = t('tab_title_chapters');
-  document.title = activeTitle;
-  trackPageView('/chapters', activeTitle);
-
   window.scrollTo({ top: 0 });
   if (updateHash) updateHashRoute();
   renderChapterTable();
+  updateClientSeo();
+  trackPageView('/chapters', document.title);
 }
 
 function goBackFromReader() {
@@ -292,6 +308,7 @@ function renderArcs() {
   ARCS.forEach(arc => {
     const card = document.createElement('div');
     card.className = 'arc-card animate-in';
+    card.setAttribute('role', 'listitem');
     card.style.setProperty('--border-glow', arc.color);
     card.style.borderTop = `3px solid ${arc.color}`;
     
@@ -300,7 +317,6 @@ function renderArcs() {
       setTimeout(() => {
         const searchInput = document.getElementById('cl-search');
         if (searchInput) {
-          // Use the word Arc in search input
           searchInput.value = `${t('arc_word')} ${arc.id}`;
           filterChapters(searchInput.value);
         }
@@ -321,6 +337,39 @@ function renderArcs() {
       </div>
     `;
     arcsGrid.appendChild(card);
+  });
+}
+
+// ── Render Popular Chapters (internal linking / SEO) ──
+function renderPopularChapters() {
+  const grid = document.getElementById('popular-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  // Curated popular chapters (key story moments)
+  const popular = [
+    { number: 1,   label: 'Chapter 1',   desc: 'The Day of Departure — where it all begins' },
+    { number: 38,  label: 'Chapter 38',  desc: 'Hunter Exam finale — Gon passes' },
+    { number: 64,  label: 'Chapter 64',  desc: 'Yorknew City Arc begins' },
+    { number: 186, label: 'Chapter 186', desc: 'Chimera Ant Arc — the legendary saga starts' },
+    { number: 319, label: 'Chapter 319', desc: '13th Chairman Election Arc begins' },
+    { number: 349, label: 'Chapter 349', desc: 'Succession Contest Arc — aboard Black Whale' },
+    { number: 400, label: 'Chapter 400', desc: 'Recent milestone chapter' },
+    { number: 412, label: 'Chapter 412', desc: 'Latest chapter — read now' },
+  ];
+
+  popular.forEach(item => {
+    const ch = CHAPTERS.find(c => c.number === item.number);
+    const card = document.createElement('div');
+    card.className = 'popular-card animate-in';
+    card.setAttribute('role', 'listitem');
+    card.onclick = () => { window.location.hash = `#/chapter/${item.number}`; };
+    card.innerHTML = `
+      <div class="popular-ch-num">Ch. ${item.number}</div>
+      <div class="popular-ch-title">${ch ? ch.title : item.label}</div>
+      <div class="popular-ch-desc">${item.desc}</div>
+    `;
+    grid.appendChild(card);
   });
 }
 
@@ -446,11 +495,13 @@ function readChapter(chNum, updateHash = true) {
   readerTitle.textContent = titleText;
   
   const newTitle = chData
-    ? `${formatChapterNumber(chNum)} — ${chData.title} | ${t('tab_title_home')}`
-    : `${t('chapter_word')} ${chNum} | ${t('tab_title_home')}`;
+    ? `Read HxH Chapter ${chNum}: ${chData.title} Online Free | HXH Reader`
+    : `Hunter x Hunter Chapter ${chNum} | HXH Reader`;
   document.title = newTitle;
   trackPageView(`/chapter/${chNum}`, newTitle);
   
+
+
   // Update header/navigation UI details
   readerChIndicator.textContent = `${chNum} / ${CHAPTERS.length}`;
   
@@ -466,13 +517,25 @@ function readChapter(chNum, updateHash = true) {
   const translatedArc = ARC_TRANSLATIONS[lang] ? ARC_TRANSLATIONS[lang][arc.id] : null;
   const arcName = translatedArc ? translatedArc.name : (arc ? arc.name : '');
   
+  // Chapter info block with SEO intro paragraph (uses i18n)
   readerChapterInfo.innerHTML = `
     <h2>${titleText}</h2>
-    ${arc ? `<p style="color: ${arc.color}; font-weight: 600; margin-top: 4px; font-size: 0.8rem; text-transform: uppercase;">${arcName}</p>` : ''}
+    ${arc ? `<p class="reader-arc-label" style="color: ${arc.color}">${arcName}</p>` : ''}
+    <p class="reader-intro-text">${t('read_chapter_prefix')} <strong>${titleText}</strong>.${arc ? ' ' + t('read_arc_prefix') + ' <strong>' + arcName + '</strong>.' : ''} ${t('read_nav_hint')}</p>
   `;
+
+  // Update breadcrumb
+  const bcCurrent = document.getElementById('reader-breadcrumb-current');
+  if (bcCurrent) bcCurrent.textContent = `${t('breadcrumb_chapter_prefix')} ${chNum}${chData ? ': ' + chData.title : ''}`;
+
+  // Update SEO meta tags for this chapter
+  updateClientSeo();
+  trackPageView(`/chapter/${chNum}`, document.title);
 
   // Start reading images — fetch all page URLs from the server first
   readerPages.innerHTML = '';
+  const suggestedSection = document.getElementById('suggested-section');
+  if (suggestedSection) suggestedSection.innerHTML = '';
   loadChapterPages(chNum);
 }
 
@@ -523,7 +586,10 @@ async function loadChapterPages(chNum) {
     return;
   }
 
-  // Render all pages
+  // Render all pages with lazy loading and descriptive alt text
+  const chData = CHAPTERS.find(c => c.number === chNum);
+  const chTitleText = chData ? chData.title : `Chapter ${chNum}`;
+
   images.forEach((rawUrl, idx) => {
     const pageContainer = document.createElement('div');
     pageContainer.style.width = '100%';
@@ -538,7 +604,11 @@ async function loadChapterPages(chNum) {
 
     const img = document.createElement('img');
     img.className = 'reader-page-img hidden';
-    img.alt = `Chapter ${chNum} Page ${idx + 1}`;
+    // Descriptive, keyword-rich alt text for image SEO
+    img.alt = `Hunter x Hunter Chapter ${chNum}: "${chTitleText}" — Page ${idx + 1}`;
+    img.decoding = 'async';
+    // First 3 pages eager-load; rest are lazy for performance
+    img.loading = idx < 3 ? 'eager' : 'lazy';
     img.src = `/proxy-image?url=${encodeURIComponent(rawUrl)}`;
 
     img.onload = () => {
@@ -552,6 +622,9 @@ async function loadChapterPages(chNum) {
 
     pageContainer.appendChild(img);
   });
+
+  // After images are rendered, show suggested chapters
+  renderSuggestedChapters(chNum);
 }
 
 function navigateChapter(direction) {
@@ -559,6 +632,58 @@ function navigateChapter(direction) {
   if (targetCh >= 1 && targetCh <= CHAPTERS.length) {
     window.location.hash = `#/chapter/${targetCh}`;
   }
+}
+
+// ── Render Suggested Chapters in reader (internal linking) ──
+function renderSuggestedChapters(chNum) {
+  const section = document.getElementById('suggested-section');
+  if (!section) return;
+
+  const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
+  const lang = currentState.currentLang || 'EN';
+  const arcTrans = arc && ARC_TRANSLATIONS[lang] ? ARC_TRANSLATIONS[lang][arc.id] : null;
+  const arcName = arcTrans ? arcTrans.name : (arc ? arc.name : '');
+
+  // Build suggestion list: prev, next + up to 3 chapters in same arc
+  const suggestions = [];
+
+  const prevNum = chNum > 1 ? chNum - 1 : null;
+  const nextNum = chNum < CHAPTERS.length ? chNum + 1 : null;
+
+  if (prevNum) {
+    const prev = CHAPTERS.find(c => c.number === prevNum);
+    suggestions.push({ number: prevNum, title: prev ? prev.title : `Chapter ${prevNum}`, label: 'Previous Chapter' });
+  }
+  if (nextNum) {
+    const next = CHAPTERS.find(c => c.number === nextNum);
+    suggestions.push({ number: nextNum, title: next ? next.title : `Chapter ${nextNum}`, label: 'Next Chapter' });
+  }
+
+  // Add arc-adjacent chapters (skip already added)
+  if (arc) {
+    const arcChapters = CHAPTERS.filter(c => c.number >= arc.start && c.number <= arc.end && c.number !== chNum && c.number !== prevNum && c.number !== nextNum);
+    // Shuffle and take up to 3
+    const shuffled = arcChapters.sort(() => Math.random() - 0.5).slice(0, 3);
+    shuffled.forEach(c => suggestions.push({ number: c.number, title: c.title, label: `Ch. ${c.number}` }));
+  }
+
+  if (suggestions.length === 0) return;
+
+  section.innerHTML = `
+    <div class="suggested-header">
+      <h3>More from ${arcName || 'Hunter x Hunter'}</h3>
+      <p>Continue reading Hunter x Hunter — explore related chapters</p>
+    </div>
+    <div class="suggested-grid">
+      ${suggestions.map(s => `
+        <a href="#/chapter/${s.number}" class="suggested-card" aria-label="Read Hunter x Hunter Chapter ${s.number}: ${s.title}">
+          <span class="suggested-label">${s.label}</span>
+          <span class="suggested-ch">Chapter ${s.number}</span>
+          <span class="suggested-title">${s.title}</span>
+        </a>
+      `).join('')}
+    </div>
+  `;
 }
 
 // ── Google Analytics SPA Page View Tracker ──
@@ -590,7 +715,7 @@ const LANG_STORAGE_KEY = 'hxh_lang';
 
 /** Restore saved language on page load */
 function initLang() {
-  const saved = localStorage.getItem(LANG_STORAGE_KEY) || 'EN';
+  const saved = window.__initialLang || localStorage.getItem(LANG_STORAGE_KEY) || 'EN';
   applyLang(saved, false); // false = don't open menu, just set label
 }
 
@@ -766,7 +891,46 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA",
     legal_disclaimer: "Disclaimer",
     tab_title_home: "HXH Reader",
-    tab_title_chapters: "All Chapters | HXH Reader"
+    tab_title_chapters: "All Chapters | HXH Reader",
+    // ── SEO Multilingual Keys ──
+    seo_h1: "Hunter x Hunter Manga Online",
+    seo_title_home: "Hunter x Hunter Manga Online — Read Free | HXH Reader",
+    seo_title_chapters: "Read Hunter x Hunter Chapters Online — Full List | HXH Reader",
+    seo_title_chapter: "Read HxH Chapter {ch}: {title} Online Free | HXH Reader",
+    seo_desc_home: "Read Hunter x Hunter manga online for free. All 412+ chapters of Togashi's legendary series featuring Gon, Killua & Nen. Updated regularly.",
+    seo_desc_chapters: "Browse all 412 Hunter x Hunter chapters online. From Chapter 1 to the latest, read free manga in English. Updated with new chapters.",
+    seo_desc_chapter: "Read Hunter x Hunter Chapter {ch}: \"{title}\" online for free in English. Part of the {arc} Arc. High-quality scans.",
+    breadcrumb_home: "Home",
+    breadcrumb_chapters: "All Chapters",
+    breadcrumb_chapter_prefix: "Chapter",
+    alt_cover_home: "Hunter x Hunter Volume 1 manga cover by Yoshihiro Togashi — read online free",
+    alt_cover_about: "Hunter x Hunter manga cover art — Gon Freecss by Yoshihiro Togashi",
+    seo_intro_title: "Read Hunter x Hunter Manga Online for Free",
+    seo_intro_p1: "Welcome to HXH Reader — your ultimate destination to read Hunter x Hunter manga online in English, completely free. Yoshihiro Togashi's masterpiece has captivated manga fans worldwide since its debut in Weekly Shōnen Jump in 1998, and all 412+ Hunter x Hunter chapters are available here with high-quality scans and a clean, distraction-free reading experience.",
+    seo_intro_h_what: "What Is Hunter x Hunter?",
+    seo_intro_p2: "Hunter x Hunter (also written as HxH or Hunter × Hunter) is a Japanese manga series written and illustrated by Yoshihiro Togashi. The story follows Gon Freecss, a young boy who discovers his long-absent father is actually one of the world's greatest Hunters — an elite class of licensed professionals. Determined to find his father and become a Hunter himself, Gon embarks on a perilous journey that will test every limit of his strength and spirit.",
+    seo_intro_p3: "Along the way, Gon befriends Killua Zoldyck, a prodigious assassin from a legendary clan; Kurapika, the last survivor of the Kurta clan seeking revenge against the Phantom Troupe; and Leorio, an ambitious young man working toward becoming a doctor. Together, they navigate a world filled with danger, politics, and the mysterious energy known as Nen — a power system that allows skilled individuals to channel their life force for extraordinary abilities.",
+    seo_intro_h_arcs: "Major Hunter x Hunter Story Arcs",
+    seo_intro_p4: "The series spans nine major story arcs, each expanding the world and raising the emotional and narrative stakes. The Hunter Exam Arc introduces our heroes through the grueling licensing examination. The fan-favorite Yorknew City Arc sees Kurapika confront the Phantom Troupe in a tense cat-and-mouse thriller. The acclaimed Chimera Ant Arc — covering Chapters 186 to 318 — is widely regarded as one of the greatest manga arcs ever written, depicting a harrowing war between humanity and a new species of Nen-wielding insects.",
+    seo_intro_p5: "The series continues into the Dark Continent Expedition and the sprawling Succession Contest Arc, which unfolds across the Black Whale ship as the princes of the Kakin Empire battle for the throne. The legendary antagonist Hisoka weaves through every arc, adding an electrifying sense of unpredictability to an already complex narrative. Togashi's world — the Hunter Association, the concept of Nen, and the mystery of what lies beyond the known map — is one of the richest in all of manga.",
+    seo_intro_h_read: "Read Hunter x Hunter Chapters Online — Free & In English",
+    seo_intro_p6: "Every Hunter x Hunter chapter on HXH Reader loads with high-quality images, fast page transitions, and a seamless reading experience on both desktop and mobile. Whether you're catching up from Chapter 1: The Day of Departure, revisiting the legendary Chapter 186 where the Chimera Ant Arc begins, or reading the latest chapter, HXH Reader delivers a clean, ad-light reading environment.",
+    seo_intro_p7: "Our Hunter x Hunter manga updates are added as soon as new chapters release. You can also browse the full Hunter x Hunter chapter list sorted by story arc or chapter number, and use the search feature to jump directly to any chapter. No registration, no paywall — just pure manga.",
+    faq_title: "Frequently Asked Questions",
+    faq_sub: "Everything you need to know about reading Hunter x Hunter manga online",
+    faq_q1: "Where can I read Hunter x Hunter manga online?",
+    faq_a1: "You can read Hunter x Hunter manga online for free right here on HXH Reader. All 412+ chapters are available in English with high-quality scans and a clean reading interface. No registration or subscription required.",
+    faq_q2: "Is Hunter x Hunter manga still ongoing?",
+    faq_a2: "Yes, Hunter x Hunter is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022 after a long hiatus. As of 2026, the latest chapter is Chapter 412, continuing the Succession Contest Arc aboard the Black Whale ship.",
+    faq_q3: "What is the latest Hunter x Hunter chapter?",
+    faq_a3: "The latest Hunter x Hunter chapter is Chapter 412. New Hunter x Hunter manga updates are added to HXH Reader as soon as they are released by Yoshihiro Togashi in Weekly Shōnen Jump.",
+    faq_q4: "Can I read Hunter x Hunter in English for free?",
+    faq_a4: "Yes! HXH Reader provides all Hunter x Hunter chapters in English for free. You can read from Chapter 1: The Day of Departure all the way to the latest chapter without any registration or subscription.",
+    faq_q5: "What are the main Hunter x Hunter story arcs?",
+    faq_a5: "Hunter x Hunter has 9 major story arcs: Hunter Exam Arc (Ch. 1–38), Zoldyck Family Arc (Ch. 39–43), Heavens Arena Arc (Ch. 44–63), Yorknew City Arc (Ch. 64–119), Greed Island Arc (Ch. 120–185), Chimera Ant Arc (Ch. 186–318), 13th Chairman Election Arc (Ch. 319–339), Dark Continent Expedition (Ch. 340–348), and the ongoing Succession Contest Arc (Ch. 349–412).",
+    read_chapter_prefix: "You are reading",
+    read_arc_prefix: "This chapter is part of the",
+    read_nav_hint: "Use the navigation below or the arrow buttons to move between chapters."
   },
   FR: {
     nav_home: "Accueil",
@@ -831,7 +995,45 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA",
     legal_disclaimer: "Clause de Non-responsabilité",
     tab_title_home: "HXH Reader | Lecture en ligne de Hunter × Hunter",
-    tab_title_chapters: "Tous les chapitres | HXH Reader"
+    tab_title_chapters: "Tous les chapitres | HXH Reader",
+    seo_h1: "Hunter x Hunter Manga en Ligne",
+    seo_title_home: "Hunter x Hunter Manga en Ligne — Lire Gratuit | HXH Reader",
+    seo_title_chapters: "Lire Chapitres Hunter x Hunter en Ligne — Liste | HXH Reader",
+    seo_title_chapter: "Lire HxH Chapitre {ch}: {title} Gratuit En Ligne | HXH Reader",
+    seo_desc_home: "Lisez le manga Hunter x Hunter en ligne gratuitement. Tous les 412+ chapitres de la série légendaire de Togashi avec Gon, Killua et Nen.",
+    seo_desc_chapters: "Parcourez les 412 chapitres de Hunter x Hunter en ligne. Lisez le manga gratuit en français du chapitre 1 au dernier. Mises à jour régulières.",
+    seo_desc_chapter: "Lisez Hunter x Hunter Chapitre {ch}: \"{title}\" en ligne gratuitement en français. Fait partie de l'Arc {arc}. Scans de haute qualité.",
+    breadcrumb_home: "Accueil",
+    breadcrumb_chapters: "Tous les Chapitres",
+    breadcrumb_chapter_prefix: "Chapitre",
+    alt_cover_home: "Couverture du manga Hunter x Hunter Volume 1 par Yoshihiro Togashi — lire en ligne gratuit",
+    alt_cover_about: "Illustration de couverture Hunter x Hunter — Gon Freecss par Yoshihiro Togashi",
+    seo_intro_title: "Lire Hunter x Hunter Manga en Ligne Gratuitement",
+    seo_intro_p1: "Bienvenue sur HXH Reader, votre site de référence pour lire Hunter x Hunter manga en ligne gratuitement. L'œuvre légendaire de Yoshihiro Togashi a conquis des millions de lecteurs depuis sa première publication dans le Weekly Shōnen Jump en 1998, et l'intégralité des 412 chapitres Hunter x Hunter est accessible ici en haute définition.",
+    seo_intro_h_what: "Qu'est-ce que Hunter x Hunter ?",
+    seo_intro_p2: "Hunter x Hunter raconte les aventures de Gon Freecss, un jeune garçon qui découvre que son père est l'un des plus grands Hunters de la planète. Déterminé à le retrouver, Gon décide de passer le redoutable examen pour obtenir sa licence de Hunter.",
+    seo_intro_p3: "Gon se lie d'amitié avec Killua Zoldyck, l'héritier d'une célèbre famille d'assassins, Kurapika, dernier survivant du clan Kurta, et Leorio, qui souhaite devenir médecin. Ensemble, ils vont s'initier au Nen, un système d'énergie spirituelle permettant de développer des pouvoirs extraordinaires.",
+    seo_intro_h_arcs: "Les grands arcs narratifs de Hunter x Hunter",
+    seo_intro_p4: "Les chapitres Hunter x Hunter couvrent des sagas inoubliables. L'Arc des Fourmis Chimères (chapitres 186 à 318) reste gravé dans les mémoires comme l'une des histoires les plus sombres et intenses de l'histoire du shōnen.",
+    seo_intro_p5: "La série se poursuit avec l'Arc de la Succession Royale à bord du Black Whale. L'incontournable Hisoka continue de tirer les ficelles dans l'ombre, rendant chaque nouveau chapitre Hunter x Hunter totalement imprévisible.",
+    seo_intro_h_read: "Lire les chapitres Hunter x Hunter en ligne",
+    seo_intro_p6: "Notre plateforme vous permet de lire Hunter x Hunter en ligne avec un confort de lecture optimal sur smartphone comme sur PC. Que vous souhaitiez redécouvrir le premier chapitre ou lire le dernier chapitre Hunter x Hunter, vous profiterez de scans rapides.",
+    seo_intro_p7: "Nous publions chaque mise à jour de Hunter x Hunter dès sa sortie officielle au Japon. Utilisez notre outil de recherche pour filtrer les chapitres par arc narratif.",
+    faq_title: "Foire Aux Questions",
+    faq_sub: "Tout ce que vous devez savoir pour lire le manga Hunter x Hunter en ligne",
+    faq_q1: "Où puis-je lire le manga Hunter x Hunter en ligne gratuitement ?",
+    faq_a1: "Vous pouvez lire le manga Hunter x Hunter en ligne gratuitement directement sur HXH Reader. L'ensemble des 412+ chapitres est disponible en français avec d'excellents scans et une interface fluide. Aucun abonnement ni inscription n'est requis.",
+    faq_q2: "Le manga Hunter x Hunter est-il toujours en cours de parution ?",
+    faq_a2: "Oui, Hunter x Hunter est toujours en cours. Après une longue pause, l'auteur Yoshihiro Togashi a repris l'écriture en 2022. En 2026, le chapitre le plus récent est le Chapitre 412, poursuivant l'Arc de la Succession Royale à bord du Black Whale.",
+    faq_q3: "Quel est le dernier chapitre de Hunter x Hunter ?",
+    faq_a3: "Le dernier chapitre publié est le Chapitre 412. Les nouveaux chapitres et les mises à jour du manga Hunter x Hunter sont ajoutés à notre catalogue dès leur sortie hebdomadaire dans le magazine Weekly Shōnen Jump.",
+    faq_q4: "Puis-je lire Hunter x Hunter en français gratuitement ?",
+    faq_a4: "Oui, vous pouvez lire tous les chapitres de Hunter x Hunter en français gratuitement sur HXH Reader. Du premier chapitre au tout dernier numéro, les pages sont adaptées aux mobiles et ordinateurs.",
+    faq_q5: "Quels sont les arcs principaux de Hunter x Hunter ?",
+    faq_a5: "Hunter x Hunter compte 9 arcs narratifs : Examen de Hunter (Ch. 1–38), Famille Zoldik (Ch. 39–43), Tour Céleste (Ch. 44–63), Yorknew City (Ch. 64–119), Greed Island (Ch. 120–185), Fourmis Chimères (Ch. 186–318), Élection du 13e Président (Ch. 319–339), Expédition du Continent Obscur (Ch. 340–348), et la Succession Royale (Ch. 349–412).",
+    read_chapter_prefix: "Vous lisez",
+    read_arc_prefix: "Ce chapitre fait partie de l'arc",
+    read_nav_hint: "Utilisez les boutons de navigation ou les touches fléchées pour changer de chapitre."
   },
   ES: {
     nav_home: "Inicio",
@@ -896,7 +1098,45 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA",
     legal_disclaimer: "Descargo de Responsabilidad",
     tab_title_home: "HXH Reader | Leer Hunter × Hunter en español",
-    tab_title_chapters: "Todos los capítulos | HXH Reader"
+    tab_title_chapters: "Todos los capítulos | HXH Reader",
+    seo_h1: "Hunter x Hunter Manga Online en Español",
+    seo_title_home: "Hunter x Hunter Manga Online — Leer Gratis | HXH Reader",
+    seo_title_chapters: "Leer Capítulos de Hunter x Hunter Online — Lista | HXH Reader",
+    seo_title_chapter: "Leer HxH Capítulo {ch}: {title} Gratis Online | HXH Reader",
+    seo_desc_home: "Lee el manga Hunter x Hunter online gratis. Todos los 412+ capítulos de la serie legendaria de Togashi con Gon, Killua y Nen. Actualizado regularmente.",
+    seo_desc_chapters: "Explora los 412 capítulos de Hunter x Hunter online. Lee manga gratis en español desde el capítulo 1 hasta el último. Actualizaciones regulares.",
+    seo_desc_chapter: "Lee Hunter x Hunter Capítulo {ch}: \"{title}\" online gratis en español. Parte del Arco {arc}. Escaneos de alta calidad.",
+    breadcrumb_home: "Inicio",
+    breadcrumb_chapters: "Todos los Capítulos",
+    breadcrumb_chapter_prefix: "Capítulo",
+    alt_cover_home: "Portada de Hunter x Hunter Volumen 1 por Yoshihiro Togashi — leer online gratis",
+    alt_cover_about: "Ilustración de portada de Hunter x Hunter — Gon Freecss por Yoshihiro Togashi",
+    seo_intro_title: "Leer Hunter x Hunter Manga Online Gratis",
+    seo_intro_p1: "Bienvenido a HXH Reader, el lugar ideal para leer Hunter x Hunter manga online gratis. La gran obra maestra de Yoshihiro Togashi ha cautivado a los fans de todo el mundo desde su debut en la revista Weekly Shōnen Jump en 1998, y los más de 412 capítulos de Hunter x Hunter están disponibles con escaneos de alta calidad.",
+    seo_intro_h_what: "¿Qué es Hunter x Hunter?",
+    seo_intro_p2: "Hunter x Hunter es una serie escrita e ilustrada por Yoshihiro Togashi. La historia sigue a Gon Freecss, un niño que descubre que su padre es en realidad uno de los mejores Cazadores del mundo. Decidido a encontrar a su padre y convertirse en un Cazador profesional, Gon emprende una emocionante aventura.",
+    seo_intro_p3: "En su viaje, Gon se hace amigo de Killua Zoldyck, un joven asesino de una familia legendaria; Kurapika, el último sobreviviente de su clan que busca vengarse de la Brigada Fantasma; y Leorio, un noble aspirante a médico. Juntos descubren el fascinante mundo del Nen.",
+    seo_intro_h_arcs: "Arcos principales de Hunter x Hunter",
+    seo_intro_p4: "Los capítulos de Hunter x Hunter se dividen en varios arcos principales. El aclamado Arco de las Hormigas Quimera (capítulos 186 al 318) muestra la cruda batalla de la Asociación de Cazadores contra una nueva especie mutante y peligrosa.",
+    seo_intro_p5: "La historia continúa en el Arco del Concurso de Sucesión a bordo de la gigantesca nave Black Whale. La complejidad que Togashi dio al sistema de Nen convierte a esta obra en uno de los mejores mangas de la historia.",
+    seo_intro_h_read: "Leer Capítulos de Hunter x Hunter Online Gratis",
+    seo_intro_p6: "Puedes leer Hunter x Hunter online y disfrutar de imágenes limpias y transiciones rápidas tanto en móvil como en ordenador. Ya sea que empieces desde el Capítulo 1 o quieras leer el último capítulo de Hunter x Hunter, en HXH Reader te ofrecemos un entorno limpio y optimizado.",
+    seo_intro_p7: "Añadimos las últimas actualizaciones del manga Hunter x Hunter en cuanto se publican. Puedes explorar la lista completa de capítulos y usar el buscador para encontrar tu momento favorito al instante.",
+    faq_title: "Preguntas Frecuentes",
+    faq_sub: "Todo lo que necesitas saber para leer el manga Hunter x Hunter en línea",
+    faq_q1: "¿Dónde puedo leer el manga Hunter x Hunter online gratis?",
+    faq_a1: "Puedes leer el manga Hunter x Hunter en línea de forma gratuita aquí mismo en HXH Reader. Todos los más de 412 capítulos están disponibles en español con escaneos de alta calidad. No necesitas registrarte ni pagar suscripción.",
+    faq_q2: "¿El manga de Hunter x Hunter sigue en emisión?",
+    faq_a2: "Sí, Hunter x Hunter sigue en curso. Creado por Yoshihiro Togashi, el manga reanudó su publicación en 2022 tras una larga pausa. En 2026, el capítulo más reciente es el Capítulo 412, que continúa el Arco del Concurso de Sucesión a bordo de la nave Black Whale.",
+    faq_q3: "¿Cuál es el último capítulo de Hunter x Hunter?",
+    faq_a3: "El último capítulo de Hunter x Hunter publicado es el Capítulo 412. Las nuevas actualizaciones y capítulos de Hunter x Hunter se añaden a HXH Reader de forma inmediata tras su publicación oficial en Weekly Shōnen Jump.",
+    faq_q4: "¿Puedo leer Hunter x Hunter en español de forma gratuita?",
+    faq_a4: "¡Sí! En HXH Reader ofrecemos todos los capítulos de Hunter x Hunter en español gratis. Puedes leer desde el Capítulo 1 hasta el capítulo más reciente de forma libre, optimizado para móviles y ordenadores.",
+    faq_q5: "¿Cuáles son los arcos argumentales de Hunter x Hunter?",
+    faq_a5: "Hunter x Hunter consta de 9 arcos: Examen de Cazador (Cap. 1-38), Familia Zoldyck (Cap. 39-43), Coliseo del Cielo (Cap. 44-63), Ciudad de Yorknew (Cap. 64-119), Greed Island (Cap. 120-185), Hormigas Quimera (Cap. 186-318), Elección del 13° Presidente (Cap. 319-339), Expedición al Continente Oscuro (Cap. 340-348) y el Concurso de Sucesión (Cap. 349-412).",
+    read_chapter_prefix: "Estás leyendo",
+    read_arc_prefix: "Este capítulo forma parte del",
+    read_nav_hint: "Usa la barra de navegación inferior o las flechas para desplazarte entre capítulos."
   },
   DE: {
     nav_home: "Startseite",
@@ -961,7 +1201,45 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA",
     legal_disclaimer: "Haftungsausschluss",
     tab_title_home: "HXH Reader | Hunter × Hunter Manga online",
-    tab_title_chapters: "Alle Kapitel | HXH Reader"
+    tab_title_chapters: "Alle Kapitel | HXH Reader",
+    seo_h1: "Hunter x Hunter Manga online lesen",
+    seo_title_home: "Hunter x Hunter Manga Online Lesen — Kostenlos | HXH Reader",
+    seo_title_chapters: "Hunter x Hunter Kapitel Online Lesen — Liste | HXH Reader",
+    seo_title_chapter: "HxH Kapitel {ch}: {title} Kostenlos Online Lesen | HXH Reader",
+    seo_desc_home: "Lies Hunter x Hunter Manga online kostenlos. Alle 412+ Kapitel von Togashis legendärer Serie mit Gon, Killua und Nen. Regelmäßige Updates.",
+    seo_desc_chapters: "Durchstöbere alle 412 Hunter x Hunter Kapitel online. Lies kostenlose Mangas auf Deutsch von Kapitel 1 bis zum neuesten Kapitel.",
+    seo_desc_chapter: "Lies Hunter x Hunter Kapitel {ch}: \"{title}\" online kostenlos auf Deutsch. Teil des {arc} Arcs. Hochwertige Scans.",
+    breadcrumb_home: "Startseite",
+    breadcrumb_chapters: "Alle Kapitel",
+    breadcrumb_chapter_prefix: "Kapitel",
+    alt_cover_home: "Hunter x Hunter Band 1 Manga Cover von Yoshihiro Togashi — kostenlos online lesen",
+    alt_cover_about: "Hunter x Hunter Manga Cover Gon Freecss von Yoshihiro Togashi",
+    seo_intro_title: "Hunter x Hunter Manga online lesen — Kostenlos",
+    seo_intro_p1: "Willkommen bei HXH Reader, der besten Plattform, um Hunter x Hunter Manga online lesen zu können — komplett kostenlos. Das Meisterwerk von Yoshihiro Togashi begeistert Fans weltweit seit dem Debüt im Weekly Shōnen Jump im Jahr 1998. Alle 412+ Hunter x Hunter Kapitel stehen dir hier in hervorragender Qualität zur Verfügung.",
+    seo_intro_h_what: "Was ist Hunter x Hunter?",
+    seo_intro_p2: "Die Geschichte folgt Gon Freecss, einem Jungen, der herausfindet, dass sein Vater ein weltberühmter Hunter ist. Um ihn zu finden, entschließt sich Gon, ebenfalls die gefährliche Hunter-Prüfung abzulegen. Dabei freundet er sich mit Killua Zoldyck, Kurapika und Leorio an.",
+    seo_intro_p3: "Zusammen erlernen sie die Nutzung von Nen, einer fortgeschrittenen Technik zur Manipulation der eigenen Lebensenergie. Die Hunter x Hunter Kapitel führen uns durch legendäre Abenteuer wie den Yorknew City Arc und den emotionalen Chimera Ant Arc (Kapitel 186 bis 318).",
+    seo_intro_h_arcs: "Die wichtigsten Story-Arcs der Serie",
+    seo_intro_p4: "Die Serie erstreckt sich über mehrere herausragende Abschnitte. Die düsteren Ereignisse rund um die Phantom-Truppe im Yorknew Arc und der legendäre Ameisen-Arc (über 130 Kapitel) bilden den dramatischen Höhepunkt.",
+    seo_intro_p5: "Derzeit befindet sich die Story im Succession Contest Arc auf dem Weg zum Dunklen Kontinent. Jedes neue Hunter x Hunter neuestes Kapitel bringt frische Spannung rund um Kurapika, die Kakin-Prinzen und den unberechenbaren Hisoka.",
+    seo_intro_h_read: "Lies alle Hunter x Hunter Kapitel online",
+    seo_intro_p6: "Auf unserem Hunter x Hunter Online-Reader liest du alle Kapitel komfortabel auf jedem Gerät. Wir aktualisieren unsere Datenbank sofort, sobald ein neuer kostenloser Manga-Abschnitt erscheint.",
+    seo_intro_p7: "Nutze die praktische Suchfunktion, um gezielt nach deinen Lieblingskapiteln zu suchen oder filtere die Kapitel nach Story-Arcs, um direkt in die Action einzusteigen.",
+    faq_title: "Häufig Gestellte Fragen (FAQ)",
+    faq_sub: "Alles, was du über das Online-Lesen des Hunter x Hunter Mangas wissen musst",
+    faq_q1: "Wo kann ich den Hunter x Hunter Manga online kostenlos lesen?",
+    faq_a1: "Du kannst den Hunter x Hunter Manga online kostenlos hier auf HXH Reader lesen. Alle 412+ Kapitel sind in hervorragender Scan-Qualität verfügbar. Keine Registrierung oder Abonnements erforderlich.",
+    faq_q2: "Wird der Hunter x Hunter Manga noch fortgesetzt?",
+    faq_a2: "Ja, Hunter x Hunter läuft noch. Die von Yoshihiro Togashi geschriebene Serie wurde nach einer langen Pause im Jahr 2022 fortgesetzt. Im Jahr 2026 ist das aktuellste Kapitel das Kapitel 412, das die Thronfolgeschlacht an Bord der Black Whale schildert.",
+    faq_q3: "Was ist das neueste Kapitel von Hunter x Hunter?",
+    faq_a3: "Das neueste Kapitel ist Kapitel 412. Neue Kapitel werden auf HXH Reader hochgeladen, sobald sie im Weekly Shōnen Jump in Japan erscheinen.",
+    faq_q4: "Kann ich Hunter x Hunter kostenlos auf Deutsch lesen?",
+    faq_a4: "Ja, alle Kapitel von Hunter x Hunter stehen dir kostenlos zur Verfügung. Du kannst alle Kapitel von Kapitel 1 bis zum neuesten Band bequem auf dem PC oder Smartphone lesen.",
+    faq_q5: "Welches sind die Haupt-Arcs in Hunter x Hunter?",
+    faq_a5: "Hunter x Hunter besteht aus 9 Hauptabschnitten: Hunter-Prüfung (Kap. 1-38), Zoldyck-Familie (Kap. 39-43), Himmelsarena (Kap. 44-63), Yorknew City (Kap. 64-119), Greed Island (Kap. 120-185), Chimera Ants (Kap. 186-318), Wahl des 13. Vorsitzenden (Kap. 319-339), Expedition zum Dunklen Kontinent (Kap. 340-348) und dem Nachfolge-Wettbewerb (Kap. 349-412).",
+    read_chapter_prefix: "Du liest",
+    read_arc_prefix: "Dieses Kapitel ist Teil des",
+    read_nav_hint: "Nutze die Steuerung unten oder die Pfeiltasten, um zwischen den Kapiteln zu wechseln."
   },
   TR: {
     nav_home: "Ana Sayfa",
@@ -1026,7 +1304,45 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA",
     legal_disclaimer: "Sorumluluk Reddi Beyanı",
     tab_title_home: "HXH Reader | Türkçe Hunter × Hunter Oku",
-    tab_title_chapters: "Tüm Bölümler | HXH Reader"
+    tab_title_chapters: "Tüm Bölümler | HXH Reader",
+    seo_h1: "Hunter x Hunter manga oku",
+    seo_title_home: "Hunter x Hunter Manga Oku — Türkçe Online | HXH Reader",
+    seo_title_chapters: "Hunter x Hunter Bölümleri Oku — Bölüm Listesi | HXH Reader",
+    seo_title_chapter: "Hunter x Hunter Bölüm {ch}: {title} Türkçe Oku | HXH Reader",
+    seo_desc_home: "Hunter x Hunter mangasını çevrimiçi ücretsiz oku. Gon, Killua ve Nen içeren Togashi'nin efsanevi serisinin tüm 412+ bölümü burada.",
+    seo_desc_chapters: "Tüm 412 Hunter x Hunter bölümlerine göz atın. Bölüm 1'den en son bölüme kadar Türkçe Hunter x Hunter mangasını ücretsiz okuyun.",
+    seo_desc_chapter: "Hunter x Hunter Bölüm {ch}: \"{title}\" Türkçe oku. {arc} Arkının bir parçasıdır. Yüksek kaliteli taramalar ile ücretsiz okuyun.",
+    breadcrumb_home: "Ana Sayfa",
+    breadcrumb_chapters: "Tüm Bölümler",
+    breadcrumb_chapter_prefix: "Bölüm",
+    alt_cover_home: "Yoshihiro Togashi tarafından çizilen Hunter x Hunter 1. Cilt manga kapağı — çevrimiçi oku",
+    alt_cover_about: "Gon Freecss çizimi ile Hunter x Hunter manga kapak resmi",
+    seo_intro_title: "Hunter x Hunter Manga Oku — Çevrimiçi Türkçe",
+    seo_intro_p1: "HXH Reader'a hoş geldiniz! Hunter x Hunter manga oku arayışınız için en doğru adrestesiniz. Yoshihiro Togashi'nin 1998'den beri Weekly Shōnen Jump'ta yayınlanan bu efsanevi eseri, tüm dünyadaki hayranları peşinden sürüklüyor. Tüm Hunter x Hunter bölümleri yüksek kaliteli taramalarla ücretsiz olarak burada.",
+    seo_intro_h_what: "Hunter x Hunter Nedir?",
+    seo_intro_p2: "Hikaye, babasının ünlü bir Avcı olduğunu öğrenen Gon Freecss adındaki küçük bir çocuğun maceralarını anlatıyor. Gon, babasını bulabilmek için tehlikeli Avcı Sınavı'na katılır ve orada Killua Zoldyck, Kurapika ve Leorio ile tanışarak ömür boyu sürecek dostluklar kurar.",
+    seo_intro_p3: "Nen adı verilen gizemli gücü öğrenen dostumuz, kendilerini durdurulamaz bir gelişim sürecinin içinde bulurlar. Efsanevi Karınca Arkı (186 - 318. bölümler) manga dünyasının en iyi serilerinden biri olarak kabul edilir.",
+    seo_intro_h_arcs: "Hunter x Hunter'ın Önemli Hikaye Arkları",
+    seo_intro_p4: "Seri 9 ana arkı kapsar. Avcı Sınavı ile başlayan macera, Yorknew City'de Phantom Troupe'a karşı verilen intikam mücadelesiyle devam eder. 186. bölümden 318'e kadar uzanan Karınca Arkı tüm shonen dünyasının en iyi kurgularından biri kabul edilir.",
+    seo_intro_p5: "Karanlık Kıta Seferi ve Black Whale gemisinde geçen Taht Savaşı gibi en son Hunter x Hunter son bölüm gelişmelerini sitemizden takip edebilirsiniz. Bölüm listesini kullanarak istediğiniz bölüme hemen geçiş yapabilirsiniz.",
+    seo_intro_h_read: "Türkçe Avcı Maceraları Başlasın",
+    seo_intro_p6: "HXH Reader ile bölümleri takılmadan, yüksek hızda yüklenen görsellerle okuyebilirsiniz. İster Bölüm 1'den sıfırdan başlayın, ister en yeni sayıları güncel olarak okuyun.",
+    seo_intro_p7: "Manga güncellemelerimiz Shueisha tarafından yayınlandığı andan itibaren sisteme yüklenmektedir. Arama çubuğunu kullanarak favori bölümlerinize anında erişebilirsiniz.",
+    faq_title: "Sıkça Sorulan Sorular",
+    faq_sub: "Hunter x Hunter mangasını çevrimiçi okuma hakkında bilmeniz gereken her şey",
+    faq_q1: "Hunter x Hunter mangasını çevrimiçi nereden ücretsiz okuyabilirim?",
+    faq_a1: "Hunter x Hunter mangasını çevrimiçi olarak doğrudan HXH Reader'da ücretsiz okuyabilirsiniz. 412'den fazla bölümün tamamı yüksek kaliteli görseller eşliğinde sunulmaktadır. Kayıt veya üyelik zorunluluğu yoktur.",
+    faq_q2: "Hunter x Hunter mangası hala devam ediyor mu?",
+    faq_a2: "Evet, Hunter x Hunter hala devam etmektedir. Yoshihiro Togashi tarafından çizilen seri, uzun bir aranın ardından 2022'de yayınlanmaya devam etti. 2026 itibariyle en güncel bölüm, Kara Balina gemisinde geçen Taht Savaşı arkını anlatan 412. bölümdür.",
+    faq_q3: "En son yayınlanan Hunter x Hunter bölümü hangisidir?",
+    faq_a3: "Yayınlanan en son bölüm 412. bölümdür. Yeni bölümler Japonya'da haftalık Weekly Shōnen Jump dergisinde çıkar çıkmaz HXH Reader'a eklenerek güncellenmektedir.",
+    faq_q4: "Hunter x Hunter mangasını Türkçe ücretsiz okuyabilir miyim?",
+    faq_a4: "Evet! HXH Reader üzerinden tüm Hunter x Hunter bölümlerine ücretsiz erişebilirsiniz. Bölüm 1'den en son bölüme kadar mobil uyumlu okuyucumuzla hemen okumaya başlayın.",
+    faq_q5: "Hunter x Hunter'ın ana hikaye arkları nelerdir?",
+    faq_a5: "Hunter x Hunter 9 ana hikaye arkından oluşur: Avcı Sınavı (Bölüm 1-38), Zoldyck Ailesi (Bölüm 39-43), Gökyüzü Arenası (Bölüm 44-63), Yorknew Şehri (Bölüm 64-119), Greed Island (Bölüm 120-185), Karınca Arkı (Bölüm 186-318), 13. Başkanlık Seçimi (Bölüm 319-339), Karanlık Kıta Seferi (Bölüm 340-348) ve Veraset Savaşı (Bölüm 349-412).",
+    read_chapter_prefix: "Şu anda okuyorsunuz:",
+    read_arc_prefix: "Bu bölüm şu arkın bir parçasıdır:",
+    read_nav_hint: "Bölümler arasında geçiş yapmak için aşağıdaki menüyü veya yön tuşlarını kullanabilirsiniz."
   },
   JP: {
     nav_home: "ホーム",
@@ -1091,7 +1407,45 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA免責",
     legal_disclaimer: "免責事項",
     tab_title_home: "HXH Reader | 無料で Hunter × Hunter を読む",
-    tab_title_chapters: "全話一覧 | HXH Reader"
+    tab_title_chapters: "全話一覧 | HXH Reader",
+    seo_h1: "ハンターハンター 漫画",
+    seo_title_home: "ハンターハンター 漫画 — オンラインで読む無料 | HXH Reader",
+    seo_title_chapters: "ハンターハンター 最新話 — 全話一覧 | HXH Reader",
+    seo_title_chapter: "ハンターハンター 第 {ch} 話: {title} 無料漫画 | HXH Reader",
+    seo_desc_home: "ハンターハンターの漫画をオンラインで無料で読みましょう。冨樫義博の伝説的シリーズ、ゴンやキルア、念能力の全412話以上を掲載。最新話も更新中。",
+    seo_desc_chapters: "ハンターハンターの全412話をオンラインで閲覧可能。第1話から最新話まで、日本語の漫画を無料で読めます。最新情報随時更新。",
+    seo_desc_chapter: "ハンターハンター 第 {ch} 話: 「{title}」の日本語漫画をオンラインで無料閲覧。{arc}編。高画質スキャン画像。",
+    breadcrumb_home: "ホーム",
+    breadcrumb_chapters: "全話一覧",
+    breadcrumb_chapter_prefix: "第",
+    alt_cover_home: "冨樫義博作 ハンターハンター第1巻 コミックス表紙 — 無料オンライン読破",
+    alt_cover_about: "ゴン＝フリークスが描かれたハンターハンターの単行本表紙イラスト",
+    seo_intro_title: "ハンターハンターの漫画をオンラインで無料読破",
+    seo_intro_p1: "HXH Readerへようこそ！大人気コミック「ハンターハンター 漫画」をオンラインでいつでも無料で読めるファンサイトです。1998年の週刊少年ジャンプ連載開始以来、冨樫義博先生が描く緻密なストーリーと魅力的なキャラクターは世界中を魅了し続けています。第1話から最新話まで、最高の画質と読みやすいレイアウトで快適にお楽しみいただけます。",
+    seo_intro_h_what: "HUNTER×HUNTERとは？",
+    seo_intro_p2: "主人公のゴン＝フリークスは、幼い頃に死んだと聞かされていた父親ジンが、実は偉大なハンターとして生きていることを知ります。父親に会うため、過酷なハンター試験に挑むゴン。そこでキルア、クラピカ、レオリオといったかけがえのない仲間たちと出会います。",
+    seo_intro_p3: "念能力（ねんのうりょく）と呼ばれる奥深い能力システムを中心に、ハンター試験編、ヨークシンシティ編、そして傑作と名高いキメラ＝アント編（第186話〜第318話）など、数々の名エピソードを収録。仲間との絆、残酷な運命、頭脳を尽くした戦いが読者を惹きつけます。",
+    seo_intro_h_arcs: "主要ストーリー編の一覧",
+    seo_intro_p4: "物語は大きく分けて9つの編があります。特にキメラアント編は人間の業と王メルエムの成長を描き、世界的な評価を受けました。",
+    seo_intro_p5: "現在は暗黒大陸を目指すブラックホエール号内での王位継承戦が描かれています。クラピカが護衛として活躍する中、幻影旅団やヒソカの動向など「ハンターハンター 最新話」の展開から目が離せません。",
+    seo_intro_h_read: "今すぐPCやスマホでハンターハンターを読む",
+    seo_intro_p6: "当サイトのオンラインリーダーなら、スマートフォンやPCからハンターハンターの全話を快適にサクサク読むことができます。ページめくりも高速で、無駄なポップアップ広告もありません。",
+    seo_intro_p7: "検索機能を使えば、読みたい話数やサブタイトルを瞬時に見つけることができます。連載再開に備えて、ゴンとキルアの軌跡をもう一度最初から振り返ってみましょう！",
+    faq_title: "よくあるご質問",
+    faq_sub: "ハンターハンターの漫画をネットで読むためのヒント",
+    faq_q1: "ハンターハンターの漫画はどこで無料で読めますか？",
+    faq_a1: "ハンターハンターの全話は、こちらのHXH Readerでいつでもオンラインで無料で読むことができます。面倒な会員登録や課金は一切不要で、高画質なスキャン画像を快適なリーダーで楽しめます。",
+    faq_q2: "ハンターハンターの漫画はまだ連載中ですか？",
+    faq_a2: "はい、HUNTER×HUNTERは現在も連載中です。冨樫義博先生による本作は週刊少年ジャンプで掲載されており、現在の最新話は第412話（ブラックホエール号編）となっています。",
+    faq_q3: "ハンターハンターの最新話はどれですか？",
+    faq_a3: "現在の最新話は「第412話」です。少年ジャンプで新しい話が公開され次第、当サイトでも迅速にアップデートが適用されます。",
+    faq_q4: "全エピソードを最初から最後まで日本語で読めますか？",
+    faq_a4: "はい、第1話から最新話まで、すべてのエピソードを無料で読むことができます。スマートフォンにも完全対応しています。",
+    faq_q5: "ハンターハンターの主なストーリー編は何ですか？",
+    faq_a5: "主なストーリー編は、ハンター試験編（1-38話）、ゾルディック家編（39-43話）、天空闘技場編（44-63話）、ヨークシンシティ編（64-119話）、グリードアイランド編（120-185話）、キメラアント編（186-318話）、会長選挙編（319-339話）、暗黒大陸遠征編（340-348話）、王位継承戦編（349話以降）です。",
+    read_chapter_prefix: "閲覧中のエピソード：",
+    read_arc_prefix: "この話は次のストーリー編に属しています：",
+    read_nav_hint: "ページ下部のナビゲーションボタンまたはキーボードの矢印キーで話を前後に切り替えられます。"
   },
   AR: {
     nav_home: "الرئيسية",
@@ -1156,7 +1510,45 @@ const TRANSLATIONS = {
     legal_dmca: "DMCA",
     legal_disclaimer: "إخلاء المسؤولية",
     tab_title_home: "HXH Reader | قراءة مانجا هنتر x هنتر مترجمة",
-    tab_title_chapters: "جميع الفصول | HXH Reader"
+    tab_title_chapters: "جميع الفصول | HXH Reader",
+    seo_h1: "مانجا هانتر × هانتر",
+    seo_title_home: "مانجا هانتر × هانتر مترجمة اون لاين — اقرأ مجاناً | HXH Reader",
+    seo_title_chapters: "فصول مانجا هانتر × هانتر كاملة — قائمة الفصول | HXH Reader",
+    seo_title_chapter: "اقرأ مانجا هانتر الفصل {ch}: {title} مترجم | HXH Reader",
+    seo_desc_home: "اقرأ مانجا هانتر × هانتر مترجمة اون لاين مجاناً. جميع فصول مانغا Hunter x Hunter (412+ فصل) من تأليف يوشيهيرو توغاشي مع غون وكيلوا والنين.",
+    seo_desc_chapters: "تصفح جميع فصول مانجا هانتر × هانتر (412 فصل) كاملة مترجمة اون لاين. اقرأ مانجا هانتر من الفصل الأول إلى الأخير مجاناً.",
+    seo_desc_chapter: "اقرأ مانجا هانتر × هانتر الفصل {ch} مترجم: \"{title}\" اون لاين مجاناً. جزء من أرك {arc}. فصول عالية الجودة.",
+    breadcrumb_home: "الرئيسية",
+    breadcrumb_chapters: "جميع الفصول",
+    breadcrumb_chapter_prefix: "الفصل",
+    alt_cover_home: "غلاف مانجا هانتر x هانتر المجلد الأول بواسطة يوشيهيرو توغاشي — اقرأ اون لاين مجاناً",
+    alt_cover_about: "لوحة غلاف مانجا هانتر x هانتر غون فريكس من رسم يوشيهيرو توغاشي",
+    seo_intro_title: "اقرأ مانجا هانتر × هانتر مترجمة اون لاين مجاناً",
+    seo_intro_p1: "أهلاً بكم في HXH Reader، وجهتكم الأولى لقراءة مانجا هانتر × هانتر مترجمة باللغة العربية مجاناً بالكامل. لقد نالت هذه التحفة الفنية للكاتب يوشيهيرو توغاشي إعجاب الملايين منذ انطلاقها في مجلة شونين جمب عام 1998، والآن يمكنك الاستمتاع بجميع فصول هانتر × هانتر (أكثر من 412 فصل) بجودة عالية وبدون إعلانات مزعجة.",
+    seo_intro_h_what: "ما هي قصة هانتر × هانتر؟",
+    seo_intro_p2: "تدور القصة حول غون فريكس، الفتى الصغير الذي يكتشف أن والده الذي تركه منذ زمن طويل هو في الواقع أحد أعظم الصيادين في العالم. يقرر غون خوض اختبار الصيادين الشاق للعثور على والده، ويلتقي بكيلوا زولديك، كورابيكا، وليوريو ليخوضوا معاً مغامرات لا تُنسى.",
+    seo_intro_p3: "يتعلم الأصدقاء الأربعة كيفية استخدام طاقة النين، وهو النظام القتالي الأكثر ابتكاراً وعمقاً في عالم المانجا. تترابط طاقة النين بالشخصية والعواطف، مما يجعل المعارك فريدة ومبنية على الذكاء والتخطيط.",
+    seo_intro_h_arcs: "أركات مانجا هانتر × هانتر الرئيسية",
+    seo_intro_p4: "تتوزع فصول هانتر × هانتر على عدة أركات مذهلة. ويعد أرك نمل الكيميرا (الفصول 186 إلى 318) من بين الأعظم في تاريخ قصص الشونين، حيث يجسد صراع البقاء بين البشر ونوع متطور من النمل السام.",
+    seo_intro_p5: "تتابع الأحداث حالياً في أرك حرب الخلافة المشوق على متن سفينة الحوت الأسود المتجهة نحو القارة المظلمة. كل فصل جديد من المانجا يحمل الكثير من التشويق والمفاجآت غير المتوقعة للجمهور العربي.",
+    seo_intro_h_read: "قارئ مانجا هانتر اون لاين — سريع ومتجاوب",
+    seo_intro_p6: "يوفر قارئ هانتر × هانتر اون لاين أفضل تجربة قراءة للفصول على الهواتف والأجهزة اللوحية والكمبيوتر. سواء كنت تريد البدء من الفصل الأول أو قراءة الفصل الأخير من هانتر × هانتر فور نزوله، ستجد جميع الفصول مرتبة وسهلة التصفح.",
+    seo_intro_p7: "استخدم ميزة البحث المباشر للوصول السريع إلى أرقام الفصول أو تصفح الأركات المختلفة لتجربة مغامرة غون فريكس وكيلوا الاستثنائية من البداية.",
+    faq_title: "الأسئلة الشائعة",
+    faq_sub: "كل ما تريد معرفته حول قراءة مانجا هانتر x هنتر اون لاين",
+    faq_q1: "أين يمكنني قراءة مانجا هانتر × هانتر مترجمة اون لاين مجاناً؟",
+    faq_a1: "يمكنك قراءة مانجا هانتر × هانتر مترجمة بالكامل مجاناً هنا على موقع HXH Reader. تتوفر الفصول الـ 412+ بجودة عالية جداً وتصفح سريع ومتوافق مع جميع الشاشات بدون الحاجة للتسجيل أو دفع أي رسوم.",
+    faq_q2: "هل مانغا هانتر × هانتر لا تزال مستمرة؟",
+    faq_a2: "نعم، مانجا هانتر × هانتر مستمرة ولم تنتهِ بعد. بعد فترة توقف طويلة، عاد المؤلف يوشيهيرو توغاشي للكتابة في عام 2026. والفصل الأحدث هو الفصل 412، ويستكمل الأحدث في أرك حرب الخلافة على متن سفينة الحوت الأسود.",
+    faq_q3: "ما هو الفصل الأخير والجديد في هانتر؟",
+    faq_a3: "الفصل الأخير المتوفر حالياً هو الفصل 412. يتم إضافة الفصول الجديدة فور صدورها وترجمتها مباشرة بعد النشر الرسمي في مجلة شونين جمب الأسبوعية في اليابان.",
+    faq_q4: "هل يمكنني قراءة جميع الفصول باللغة العربية مجاناً؟",
+    faq_a4: "نعم! يوفر لك موقعنا إمكانية قراءة جميع فصول هانتر × هانتر مترجمة للعربية مجاناً، بدءاً من الفصل الأول وحتى الفصل 412 مع سرعة تحميل ممتازة للصفحات.",
+    faq_q5: "ما هي أركات هانتر × هانتر بترتيب الفصول؟",
+    faq_a5: "تتكون السلسلة من 9 أركات رئيسية: اختبار الصيادين (1-38)، عائلة زولديك (39-43)، برج القوة (44-63)، مدينة يوركنيو (64-119)، جزيرة الطمع (120-185)، نمل الكيميرا (186-318)، انتخاب رئيس الصيادين (319-339)، القارة المظلمة (340-348) وحرب الخلافة (349-412).",
+    read_chapter_prefix: "أنت تقرأ حالياً:",
+    read_arc_prefix: "هذا الفصل هو جزء من أرك",
+    read_nav_hint: "استخدم أزرار التنقل بالأسفل أو أسهم لوحة المفاتيح للتبديل بين فصول المانجا بسهولة."
   }
 };
 
@@ -1271,6 +1663,29 @@ function translateUI() {
     el.placeholder = t(key);
   });
 
+  // Translate ARIA labels
+  document.querySelectorAll('[data-i18n-aria-label]').forEach(el => {
+    const key = el.getAttribute('data-i18n-aria-label');
+    el.setAttribute('aria-label', t(key));
+  });
+
+  // Translate image alt texts
+  document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+    const key = el.getAttribute('data-i18n-alt');
+    el.alt = t(key);
+  });
+
+  // Translate breadcrumb labels in chapter list view
+  const bcHome = document.querySelector('#chapters-breadcrumb .breadcrumb-item a');
+  if (bcHome) bcHome.textContent = t('breadcrumb_home');
+  const bcChapters = document.querySelector('#chapters-breadcrumb .breadcrumb-current');
+  if (bcChapters) bcChapters.textContent = t('breadcrumb_chapters');
+
+  // Translate breadcrumb labels in reader view
+  const readerBcItems = document.querySelectorAll('#reader-breadcrumb .breadcrumb-item a');
+  if (readerBcItems.length >= 1) readerBcItems[0].textContent = t('breadcrumb_home');
+  if (readerBcItems.length >= 2) readerBcItems[1].textContent = t('breadcrumb_chapters');
+
   // Translate dynamic sort labels
   const sortLabel = document.getElementById('sort-label');
   if (sortLabel) {
@@ -1298,15 +1713,208 @@ function translateUI() {
       rInfo.innerHTML = `
         <h2>${titleText}</h2>
         ${arc ? `<p style="color: ${arc.color}; font-weight: 600; margin-top: 4px; font-size: 0.8rem; text-transform: uppercase;">${arcName}</p>` : ''}
+        <p class="reader-intro-text">${t('read_chapter_prefix')} <strong>${titleText}</strong>.${arc ? ' ' + t('read_arc_prefix') + ' <strong>' + arcName + '</strong>.' : ''} ${t('read_nav_hint')}</p>
       `;
+
+      // Update reader breadcrumb current item
+      const rBcCurrent = document.getElementById('reader-breadcrumb-current');
+      if (rBcCurrent) rBcCurrent.textContent = `${t('breadcrumb_chapter_prefix')} ${chNum}${chData ? ': ' + chData.title : ''}`;
     }
-    
-    // Update reader tab title
-    const newTitle = chData
-      ? `${formatChapterNumber(chNum)} — ${chData.title} | ${t('tab_title_home')}`
-      : `${t('chapter_word')} ${chNum} | ${t('tab_title_home')}`;
-    document.title = newTitle;
   }
+
+  // Always update all SEO head tags when language changes
+  updateClientSeo();
+}
+
+/** Dynamically update <title>, meta, canonical, hreflang, OG, Twitter & JSON-LD for current language + view */
+function updateClientSeo() {
+  const lang = currentState.currentLang || 'EN';
+  const langMap = { EN: 'en', FR: 'fr', ES: 'es', DE: 'de', TR: 'tr', JP: 'ja', AR: 'ar' };
+  const langPrefix = langMap[lang] || 'en';
+  const siteUrl = window.location.origin;
+  const LANG_CODES = ['en', 'es', 'fr', 'de', 'tr', 'ja', 'ar'];
+
+  let title = '';
+  let desc = '';
+  let pagePath = '/';
+
+  if (currentState.currentView === 'chapters') {
+    title = t('seo_title_chapters');
+    desc   = t('seo_desc_chapters');
+    pagePath = `/${langPrefix}/chapters`;
+  } else if (currentState.currentView === 'reader') {
+    const chNum  = currentState.currentChapter;
+    const chData = CHAPTERS.find(c => c.number === chNum);
+    const chTitle = chData ? chData.title : `Chapter ${chNum}`;
+    const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
+    const arcTrans = arc && ARC_TRANSLATIONS[lang] ? ARC_TRANSLATIONS[lang][arc.id] : null;
+    const arcName = arcTrans ? arcTrans.name : (arc ? arc.name : '');
+    title = t('seo_title_chapter').replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+    desc  = t('seo_desc_chapter').replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+    pagePath = `/${langPrefix}/chapter/${chNum}`;
+  } else {
+    title = t('seo_title_home');
+    desc  = t('seo_desc_home');
+    pagePath = `/${langPrefix}/`;
+  }
+
+  // ── <title> ──
+  document.title = title;
+
+  // ── Meta description ──
+  let metaDesc = document.querySelector('meta[name="description"]');
+  if (metaDesc) metaDesc.setAttribute('content', desc);
+
+  // ── Canonical ──
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (canonical) canonical.setAttribute('href', `${siteUrl}${pagePath}`);
+
+  // ── Open Graph ──
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle) ogTitle.setAttribute('content', title);
+  const ogDesc = document.querySelector('meta[property="og:description"]');
+  if (ogDesc) ogDesc.setAttribute('content', desc);
+  const ogUrl = document.querySelector('meta[property="og:url"]');
+  if (ogUrl) ogUrl.setAttribute('content', `${siteUrl}${pagePath}`);
+  const ogLocale = document.querySelector('meta[property="og:locale"]');
+  if (ogLocale) {
+    const localeMap = { en: 'en_US', fr: 'fr_FR', es: 'es_ES', de: 'de_DE', tr: 'tr_TR', ja: 'ja_JP', ar: 'ar_SA' };
+    ogLocale.setAttribute('content', localeMap[langPrefix] || 'en_US');
+  }
+
+  // ── Twitter Card ──
+  const twTitle = document.querySelector('meta[name="twitter:title"]');
+  if (twTitle) twTitle.setAttribute('content', title);
+  const twDesc = document.querySelector('meta[name="twitter:description"]');
+  if (twDesc) twDesc.setAttribute('content', desc);
+
+  // ── hreflang alternates ──
+  // Determine the sub-path (without language prefix)
+  let subPath = '/';
+  if (currentState.currentView === 'chapters') {
+    subPath = '/chapters';
+  } else if (currentState.currentView === 'reader') {
+    subPath = `/chapter/${currentState.currentChapter}`;
+  }
+
+  LANG_CODES.forEach(lc => {
+    let link = document.querySelector(`link[rel="alternate"][hreflang="${lc}"]`);
+    if (!link) {
+      link = document.createElement('link');
+      link.setAttribute('rel', 'alternate');
+      link.setAttribute('hreflang', lc);
+      document.head.appendChild(link);
+    }
+    link.setAttribute('href', `${siteUrl}/${lc}${subPath === '/' ? '/' : subPath}`);
+  });
+
+  // x-default always points to English
+  let xDefault = document.querySelector('link[rel="alternate"][hreflang="x-default"]');
+  if (!xDefault) {
+    xDefault = document.createElement('link');
+    xDefault.setAttribute('rel', 'alternate');
+    xDefault.setAttribute('hreflang', 'x-default');
+    document.head.appendChild(xDefault);
+  }
+  xDefault.setAttribute('href', `${siteUrl}/en${subPath === '/' ? '/' : subPath}`);
+
+  // ── JSON-LD structured data ──
+  const script = document.getElementById('structured-data');
+  if (script) {
+    const schema = buildSeoSchema(lang, siteUrl, pagePath, title, desc);
+    script.textContent = JSON.stringify(schema, null, 2);
+  }
+}
+
+/** Build locale-aware JSON-LD schema for current view */
+function buildSeoSchema(lang, siteUrl, pagePath, title, desc) {
+  const authorName = lang === 'JP' ? '冨樫義博' : lang === 'AR' ? 'يوشيهيرو توغاشي' : 'Yoshihiro Togashi';
+  const seriesName = lang === 'JP' ? 'ハンター×ハンター' : lang === 'AR' ? 'هنتر × هنتر' : 'Hunter × Hunter';
+  const coverUrl = `${siteUrl}/cover-image`;
+
+  const homeBc = { '@type': 'ListItem', position: 1, name: t('breadcrumb_home'), item: `${siteUrl}/` };
+  const chapsBc = { '@type': 'ListItem', position: 2, name: t('breadcrumb_chapters'), item: `${siteUrl}/chapters` };
+
+  if (currentState.currentView === 'home') {
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          '@id': `${siteUrl}/#website`,
+          url: `${siteUrl}/`,
+          name: `HXH Reader — ${t('seo_h1')}`,
+          description: desc,
+          inLanguage: document.documentElement.lang,
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: { '@type': 'EntryPoint', urlTemplate: `${siteUrl}/chapters?search={search_term_string}` },
+            'query-input': 'required name=search_term_string'
+          }
+        },
+        {
+          '@type': 'BookSeries',
+          name: seriesName,
+          author: { '@type': 'Person', name: authorName },
+          url: `${siteUrl}/`,
+          genre: ['Action', 'Adventure', 'Fantasy', 'Shounen'],
+          numberOfVolumes: '37',
+          inLanguage: document.documentElement.lang
+        },
+        { '@type': 'BreadcrumbList', itemListElement: [homeBc] },
+        {
+          '@type': 'FAQPage',
+          mainEntity: [
+            { '@type': 'Question', name: t('faq_q1'), acceptedAnswer: { '@type': 'Answer', text: t('faq_a1') } },
+            { '@type': 'Question', name: t('faq_q2'), acceptedAnswer: { '@type': 'Answer', text: t('faq_a2') } },
+            { '@type': 'Question', name: t('faq_q3'), acceptedAnswer: { '@type': 'Answer', text: t('faq_a3') } },
+            { '@type': 'Question', name: t('faq_q4'), acceptedAnswer: { '@type': 'Answer', text: t('faq_a4') } },
+            { '@type': 'Question', name: t('faq_q5'), acceptedAnswer: { '@type': 'Answer', text: t('faq_a5') } }
+          ]
+        }
+      ]
+    };
+  }
+
+  if (currentState.currentView === 'chapters') {
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        { '@type': 'CollectionPage', name: title, description: desc, url: `${siteUrl}${pagePath}`, inLanguage: document.documentElement.lang },
+        { '@type': 'BreadcrumbList', itemListElement: [homeBc, chapsBc] }
+      ]
+    };
+  }
+
+  if (currentState.currentView === 'reader') {
+    const chNum = currentState.currentChapter;
+    const chData = CHAPTERS.find(c => c.number === chNum);
+    const chTitle = chData ? chData.title : `Chapter ${chNum}`;
+    return {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'Article',
+          headline: title,
+          description: desc,
+          image: coverUrl,
+          author: { '@type': 'Person', name: authorName },
+          publisher: { '@type': 'Organization', name: 'HXH Reader', url: siteUrl },
+          inLanguage: document.documentElement.lang,
+          isPartOf: { '@type': 'BookSeries', name: seriesName, url: siteUrl }
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            homeBc, chapsBc,
+            { '@type': 'ListItem', position: 3, name: `${t('breadcrumb_chapter_prefix')} ${chNum}: ${chTitle}`, item: `${siteUrl}${pagePath}` }
+          ]
+        }
+      ]
+    };
+  }
+
+  return {};
 }
 
 /** Translate lookup helper */
