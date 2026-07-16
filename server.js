@@ -843,6 +843,11 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pathname === '/about') {
+    serveIndexWithSeo(req, res, 'home', null, langCode, langPrefix);
+    return;
+  }
+
   const chapterMatch = pathname.match(/^\/chapter\/(\d+)$/);
   if (chapterMatch) {
     const chNum = parseInt(chapterMatch[1]);

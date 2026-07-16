@@ -147,43 +147,66 @@ document.addEventListener('DOMContentLoaded', () => {
     if (sw && !sw.contains(e.target)) closeLangMenu();
   });
   
-  // Parse initial route if there is a hash
-  handleHashRoute();
-  window.addEventListener('hashchange', handleHashRoute);
-});
-
-// ── Routing & Hash Handling ──
-function handleHashRoute() {
-  const hash = window.location.hash;
-  const pathname = window.location.pathname;
-
-  let routePath = '';
-  if (hash && hash !== '#' && hash !== '#/') {
-    // Strip hash prefix
-    routePath = hash.substring(1); // e.g. "/chapters" or "/chapter/186"
-  } else {
-    // Fall back to parsing pathname
-    // Stripping any language prefix from pathname
-    let cleanPath = pathname;
-    const parts = pathname.split('/').filter(Boolean);
-    const SUPPORTED_LANGS = ['en', 'es', 'fr', 'de', 'tr', 'ja', 'ar'];
-    if (parts.length > 0 && SUPPORTED_LANGS.includes(parts[0].toLowerCase())) {
-      parts.shift();
-      cleanPath = '/' + parts.join('/');
-    }
-    routePath = cleanPath;
+  // Handle legacy hash URLs (e.g. /#/chapter/100 → /chapter/100)
+  if (window.location.hash && window.location.hash.startsWith('#/')) {
+    const legacyPath = window.location.hash.slice(1); // '#/chapter/100' → '/chapter/100'
+    history.replaceState(null, '', legacyPath);
   }
 
-  if (routePath.startsWith('/chapter/')) {
-    const chNum = parseInt(routePath.replace('/chapter/', ''));
+  // Parse initial route from pathname
+  handleRoute();
+  window.addEventListener('popstate', handleRoute);
+});
+
+// ── SPA Navigation Helper (History API) ──
+/**
+ * Navigate to a pathname-based SPA route without a full page reload.
+ * Uses history.pushState so the URL is real and bookmarkable.
+ */
+function navigateTo(path, pushState = true) {
+  if (pushState && window.location.pathname !== path) {
+    history.pushState(null, '', path);
+  }
+  handleRoute();
+}
+
+// ── Intercept all in-page SPA link clicks ──
+// Any <a href> that starts with / and is NOT a file extension or external
+// link gets handled by the SPA router instead of causing a full reload.
+document.addEventListener('click', (e) => {
+  const anchor = e.target.closest('a[href]');
+  if (!anchor) return;
+  const href = anchor.getAttribute('href');
+  if (!href) return;
+  // Only intercept relative SPA paths (no protocol, no file extension like .html)
+  const isSpaPath = href.startsWith('/') && !href.match(/\.[a-z]+$/i) && !href.startsWith('//');
+  if (!isSpaPath) return;
+  e.preventDefault();
+  navigateTo(href);
+});
+
+// ── Pathname-Based Router ──
+function handleRoute() {
+  let pathname = window.location.pathname;
+
+  // Strip language prefix (e.g. /es/chapter/100 → /chapter/100)
+  const SUPPORTED_LANGS = ['en', 'es', 'fr', 'de', 'tr', 'ja', 'ar'];
+  const parts = pathname.split('/').filter(Boolean);
+  if (parts.length > 0 && SUPPORTED_LANGS.includes(parts[0].toLowerCase())) {
+    parts.shift();
+    pathname = '/' + parts.join('/') || '/';
+  }
+
+  if (pathname.startsWith('/chapter/')) {
+    const chNum = parseInt(pathname.split('/').pop());
     if (!isNaN(chNum) && chNum >= 1 && chNum <= 412) {
       readChapter(chNum, false);
       return;
     }
-  } else if (routePath === '/chapters') {
+  } else if (pathname === '/chapters') {
     showChapterList(false);
     return;
-  } else if (routePath === '/#about-section' || hash === '#about-section') {
+  } else if (pathname === '/about' || window.location.hash === '#about-section') {
     showHome(false);
     setTimeout(() => {
       const el = document.getElementById('about-section');
@@ -191,20 +214,22 @@ function handleHashRoute() {
     }, 100);
     return;
   }
-  
+
   showHome(false);
 }
 
-function updateHashRoute() {
+// ── Update the browser URL (no full reload) ──
+function updateRoute() {
+  let path;
   if (currentState.currentView === 'reader') {
-    window.location.hash = `#/chapter/${currentState.currentChapter}`;
+    path = `/chapter/${currentState.currentChapter}`;
   } else if (currentState.currentView === 'chapters') {
-    window.location.hash = `#/chapters`;
+    path = '/chapters';
   } else {
-    // If the hash is already about-section, don't overwrite it
-    if (window.location.hash !== '#about-section') {
-      window.location.hash = `#/`;
-    }
+    path = '/';
+  }
+  if (window.location.pathname !== path) {
+    history.pushState(null, '', path);
   }
 }
 
@@ -218,11 +243,11 @@ function showHome(updateHash = true) {
   navHome.classList.add('active');
   navChapters.classList.remove('active');
 
-  const hash = window.location.hash;
-  if (hash !== '#about-section') {
+  // Don't scroll when just scrolling to the about section
+  if (window.location.hash !== '#about-section') {
     window.scrollTo({ top: 0 });
   }
-  if (updateHash) updateHashRoute();
+  if (updateHash) updateRoute();
   updateClientSeo();
   trackPageView('/', document.title);
 }
@@ -237,7 +262,7 @@ function showChapterList(updateHash = true) {
   navChapters.classList.add('active');
 
   window.scrollTo({ top: 0 });
-  if (updateHash) updateHashRoute();
+  if (updateHash) updateRoute();
   renderChapterTable();
   updateClientSeo();
   trackPageView('/chapters', document.title);
@@ -313,7 +338,7 @@ function renderArcs() {
     card.style.borderTop = `3px solid ${arc.color}`;
     
     card.onclick = () => {
-      window.location.hash = '#/chapters';
+      navigateTo('/chapters');
       setTimeout(() => {
         const searchInput = document.getElementById('cl-search');
         if (searchInput) {
@@ -363,7 +388,7 @@ function renderPopularChapters() {
     const card = document.createElement('div');
     card.className = 'popular-card animate-in';
     card.setAttribute('role', 'listitem');
-    card.onclick = () => { window.location.hash = `#/chapter/${item.number}`; };
+    card.onclick = () => { navigateTo(`/chapter/${item.number}`); };
     card.innerHTML = `
       <div class="popular-ch-num">Ch. ${item.number}</div>
       <div class="popular-ch-title">${ch ? ch.title : item.label}</div>
@@ -381,7 +406,7 @@ function renderRecentChapters() {
     const card = document.createElement('div');
     card.className = 'recent-card animate-in';
     card.onclick = () => {
-      window.location.hash = `#/chapter/${ch.number}`;
+      navigateTo(`/chapter/${ch.number}`);
     };
 
     card.innerHTML = `
@@ -437,10 +462,10 @@ function renderChapterTable() {
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${ch.number}</td>
-      <td class="ch-title-cell"><a href="#/chapter/${ch.number}">${ch.title}</a></td>
+      <td class="ch-title-cell"><a href="/chapter/${ch.number}">${ch.title}</a></td>
       <td class="ch-date-cell hide-mobile">${t('released_label')}</td>
       <td>
-        <a href="#/chapter/${ch.number}" class="ch-read-btn" aria-label="${t('read_chapter')} ${ch.number}">
+        <a href="/chapter/${ch.number}" class="ch-read-btn" aria-label="${t('read_chapter')} ${ch.number}">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </a>
       </td>
@@ -487,7 +512,7 @@ function readChapter(chNum, updateHash = true) {
   readerView.classList.remove('hidden');
 
   window.scrollTo({ top: 0 });
-  if (updateHash) updateHashRoute();
+  if (updateHash) updateRoute();
 
   // Find chapter details
   const chData = CHAPTERS.find(c => c.number === chNum);
@@ -630,7 +655,7 @@ async function loadChapterPages(chNum) {
 function navigateChapter(direction) {
   const targetCh = currentState.currentChapter + direction;
   if (targetCh >= 1 && targetCh <= CHAPTERS.length) {
-    window.location.hash = `#/chapter/${targetCh}`;
+    navigateTo(`/chapter/${targetCh}`);
   }
 }
 
@@ -676,7 +701,7 @@ function renderSuggestedChapters(chNum) {
     </div>
     <div class="suggested-grid">
       ${suggestions.map(s => `
-        <a href="#/chapter/${s.number}" class="suggested-card" aria-label="Read Hunter x Hunter Chapter ${s.number}: ${s.title}">
+        <a href="/chapter/${s.number}" class="suggested-card" aria-label="Read Hunter x Hunter Chapter ${s.number}: ${s.title}">
           <span class="suggested-label">${s.label}</span>
           <span class="suggested-ch">Chapter ${s.number}</span>
           <span class="suggested-title">${s.title}</span>
