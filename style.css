@@ -518,6 +518,9 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .cover-img {
   width: clamp(220px, 22vw, 320px);
+  height: auto;                   /* always preserve aspect ratio */
+  object-fit: contain;            /* never squash or stretch */
+  display: block;                 /* remove inline baseline gap */
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg), 0 0 0 1px rgba(255,255,255,.05);
   transition: var(--transition);
@@ -1256,8 +1259,21 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   .hero-badge, .hero-actions, .hero-stats { justify-content: center; }
   .hero-actions { justify-content: center; }
   .hero-stats   { justify-content: center; }
-  .hero-cover { order: -1; }
-  .cover-img { width: 180px; }
+  .hero-cover {
+    order: -1;
+    /* Let the cover scale with the viewport — never wider than the viewport */
+    width: 100%;
+    max-width: 280px;    /* natural cover width on tablet */
+    flex-shrink: 0;      /* prevent flex from compressing it */
+    align-self: center;  /* keep it centred in the column layout */
+  }
+  .cover-img {
+    /* Smooth scaling across all breakpoints:
+       min=160px, pref=50vw (half viewport on portrait), max=280px */
+    width: clamp(160px, 50vw, 280px);
+    height: auto;           /* CRITICAL — keeps manga cover aspect ratio */
+    object-fit: contain;    /* safeguard against any fixed-height ancestor */
+  }
   .about-inner { flex-direction: column; gap: 30px; }
   .footer-inner { grid-template-columns: 1fr 1fr; }
   .footer-brand { grid-column: 1 / -1; }
@@ -1314,6 +1330,20 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 @media (max-width: 400px) {
   .recent-grid { grid-template-columns: 1fr; }
+}
+/* ── Narrow phone cover fix: 320-430 px ──
+   At these widths 50vw can be as little as 160px, which already hits the
+   clamp() minimum. We allow the image to fill up to 72 % of the viewport
+   so it remains comfortably visible on a 320 px screen (≈230 px wide). */
+@media (max-width: 430px) {
+  .hero-cover {
+    max-width: min(240px, 80vw); /* never wider than 80 % of the viewport */
+  }
+  .cover-img {
+    width: 100%;      /* fill the container completely */
+    height: auto;     /* ratio preserved by the container's width */
+    max-width: none;  /* let the container be the constraint */
+  }
 }
 
 /* ── Loading Spinner Animation ── */
