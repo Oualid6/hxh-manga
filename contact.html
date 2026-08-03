@@ -149,7 +149,7 @@
 
     <!-- Contact Form -->
     <div class="contact-form">
-      <h2 style="margin-top:0">Send a Message</h2>
+      <h2 class="mt-0">Send a Message</h2>
       <form action="mailto:contact@hxhreader.com" method="post" enctype="text/plain" id="contact-form" onsubmit="return handleFormSubmit(event)">
         <div class="form-group">
           <label for="contact-name">Your Name <span aria-hidden="true">*</span></label>
@@ -183,7 +183,7 @@
 
     <h2>Frequently Needed Links</h2>
     <p>Before reaching out, check if your answer is already here:</p>
-    <ul style="color: var(--text-2); line-height: 2;">
+    <ul class="legal-link-list">
       <li><a href="/privacy.html">Privacy Policy</a></li>
       <li><a href="/terms.html">Terms &amp; Conditions</a></li>
       <li><a href="/dmca.html">DMCA Policy</a></li>
@@ -194,9 +194,9 @@
 </main>
 
 <!-- Footer -->
-<footer class="site-footer" style="margin-top:0">
+<footer class="site-footer mt-0">
   <div class="footer-bottom">
-    <p>© 2026 HxH Fan Site · All rights reserved. · <a href="/" style="color:var(--teal)">Back to Reader</a></p>
+    <p>© 2026 HxH Fan Site · All rights reserved. · <a href="/" class="text-teal">Back to Reader</a></p>
   </div>
 </footer>
 
@@ -205,7 +205,7 @@
   window.addEventListener('scroll', () => {
     const nb = document.getElementById('navbar');
     if (nb) nb.classList.toggle('scrolled', window.scrollY > 40);
-  });
+  }, { passive: true });
 
   function handleFormSubmit(e) {
     e.preventDefault();

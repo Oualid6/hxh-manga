@@ -320,7 +320,7 @@ function setupScrollHandlers() {
     } else {
       scrollTopBtn.classList.remove('visible');
     }
-  });
+  }, { passive: true });
 }
 
 // ── Mobile Menu ──

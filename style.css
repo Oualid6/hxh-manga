@@ -9,6 +9,7 @@
   --bg-3:        #161922;
   --bg-card:     #222222;
   --bg-card-h:   #2a2a2a;
+  --surface:     #141722;
   --border:      rgba(255,255,255,.06);
   --border-h:    rgba(255,255,255,.12);
 
@@ -1030,10 +1031,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 .reader-page-container {
   width: 100%;
+  max-width: 800px;
   display: flex;
   justify-content: center;
   position: relative;
   min-height: 200px;
+  margin: 0 auto;
 }
 .reader-page-img {
   width: 100%;
@@ -1042,26 +1045,23 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   display: block;
   border-radius: 4px;
   opacity: 0;
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
   transition: opacity 0.3s ease-in-out;
 }
 .reader-page-img.loaded {
   opacity: 1;
-  position: relative;
-  left: auto;
-  transform: none;
 }
 .page-skeleton {
+  position: absolute;
+  inset: 0;
   width: 100%;
   max-width: 800px;
-  height: 1100px;
+  height: 100%;
+  min-height: 400px;
   background: var(--bg-card);
   border-radius: 4px;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 .page-skeleton::after {
   content: '';
@@ -1257,8 +1257,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   }
   .hero-content { max-width: 100%; }
   .hero-badge, .hero-actions, .hero-stats { justify-content: center; }
-  .hero-actions { justify-content: center; }
-  .hero-stats   { justify-content: center; }
   .hero-cover {
     order: -1;
     /* Let the cover scale with the viewport — never wider than the viewport */
@@ -1327,6 +1325,22 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     font-size: .85rem;
     width: 100%;
   }
+
+  /* Legal pages mobile */
+  .legal-card {
+    padding: 24px 16px;
+  }
+  .legal-card h1 {
+    font-size: 1.6rem;
+  }
+
+  /* SEO & Suggested sections mobile */
+  .seo-intro { padding: 40px 20px; }
+  .faq-section { padding: 40px 20px; }
+  .popular-section { padding: 40px 20px; }
+  .popular-grid { grid-template-columns: 1fr 1fr; }
+  .suggested-grid { grid-template-columns: 1fr 1fr; }
+  .breadcrumb { padding: 8px 16px; }
 }
 @media (max-width: 400px) {
   .recent-grid { grid-template-columns: 1fr; }
@@ -1344,12 +1358,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
     height: auto;     /* ratio preserved by the container's width */
     max-width: none;  /* let the container be the constraint */
   }
-}
-
-/* ── Loading Spinner Animation ── */
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
 }
 
 /* ════════════════════════════════════════
@@ -1397,14 +1405,6 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 .legal-card li {
   margin-bottom: 8px;
   line-height: 1.6;
-}
-@media (max-width: 640px) {
-  .legal-card {
-    padding: 24px 16px;
-  }
-  .legal-card h1 {
-    font-size: 1.6rem;
-  }
 }
 
 /* ════════════════════════════════════════
@@ -1729,14 +1729,12 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 
 /* ════════════════════════════════════════
-   RESPONSIVE — SEO ELEMENTS
+   UTILITY & HELPER CLASSES
    ════════════════════════════════════════ */
-@media (max-width: 640px) {
-  .seo-intro { padding: 40px 20px; }
-  .faq-section { padding: 40px 20px; }
-  .popular-section { padding: 40px 20px; }
-  .popular-grid { grid-template-columns: 1fr 1fr; }
-  .suggested-grid { grid-template-columns: 1fr 1fr; }
-  .breadcrumb { padding: 8px 16px; }
-}
+.text-gold { color: var(--gold); }
+.text-teal { color: var(--teal); }
+.mt-0 { margin-top: 0 !important; }
+.legal-link-list { color: var(--text-2); line-height: 2; }
+.togashi-portrait { border-radius: 8px; max-width: 160px; }
+
 
