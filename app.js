@@ -81,7 +81,7 @@ const ARCS = [
     name: "Succession Contest Arc",
     range: "Chapters 349 – 412",
     start: 349,
-    end: 412,
+    end: 9999,
     desc: "A deadly battle royale unfolds aboard the Black Whale ship as the Kakin princes fight to the death for the throne using Nen beasts.",
     color: "#E53935" // Crimson Red
   }
@@ -199,7 +199,8 @@ function handleRoute() {
 
   if (pathname.startsWith('/chapter/')) {
     const chNum = parseInt(pathname.split('/').pop());
-    if (!isNaN(chNum) && chNum >= 1 && chNum <= 412) {
+    const maxCh = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1].number : 1000;
+    if (!isNaN(chNum) && chNum >= 1 && chNum <= maxCh) {
       readChapter(chNum, false);
       return;
     }
@@ -371,7 +372,7 @@ function renderPopularChapters() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  // Curated popular chapters (key story moments)
+  const latestCh = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1] : { number: 412, title: 'Chapter 412' };
   const popular = [
     { number: 1,   label: 'Chapter 1',   desc: 'The Day of Departure — where it all begins' },
     { number: 38,  label: 'Chapter 38',  desc: 'Hunter Exam finale — Gon passes' },
@@ -380,7 +381,7 @@ function renderPopularChapters() {
     { number: 319, label: 'Chapter 319', desc: '13th Chairman Election Arc begins' },
     { number: 349, label: 'Chapter 349', desc: 'Succession Contest Arc — aboard Black Whale' },
     { number: 400, label: 'Chapter 400', desc: 'Recent milestone chapter' },
-    { number: 412, label: 'Chapter 412', desc: 'Latest chapter — read now' },
+    { number: latestCh.number, label: `Chapter ${latestCh.number}`, desc: 'Latest chapter — read now' },
   ];
 
   popular.forEach(item => {

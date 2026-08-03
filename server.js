@@ -259,6 +259,7 @@ try {
 } catch (err) {
   console.error('[SEO] Failed to load or parse chapters.js on startup:', err.message);
 }
+reloadChaptersFromDisk();
 
 /**
  * Reload CHAPTERS_LIST from disk and update KNOWN_CHAPTER_IDS in-memory.
@@ -273,6 +274,16 @@ function reloadChaptersFromDisk() {
       CHAPTERS_LIST = JSON.parse(jsonMatch[1]);
       console.log(`[SEO] Reloaded ${CHAPTERS_LIST.length} chapters from disk.`);
     }
+    // Sync state ID map into KNOWN_CHAPTER_IDS
+    try {
+      const statePath = path.join(__dirname, 'sync', 'sync-state.json');
+      if (fs.existsSync(statePath)) {
+        const state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+        if (state.chapterIdMap) {
+          Object.assign(KNOWN_CHAPTER_IDS, state.chapterIdMap);
+        }
+      }
+    } catch (_) {}
   } catch (err) {
     console.error('[SEO] Failed to reload chapters.js:', err.message);
   }
