@@ -260,6 +260,46 @@ try {
   console.error('[SEO] Failed to load or parse chapters.js on startup:', err.message);
 }
 
+/**
+ * Reload CHAPTERS_LIST from disk and update KNOWN_CHAPTER_IDS in-memory.
+ * Called by the sync scheduler after a new chapter is persisted.
+ */
+function reloadChaptersFromDisk() {
+  try {
+    const chaptersPath = path.join(__dirname, 'chapters.js');
+    const fileContent  = fs.readFileSync(chaptersPath, 'utf8');
+    const jsonMatch    = fileContent.match(/const\s+CHAPTERS\s*=\s*([\s\S]+?);?\s*$/);
+    if (jsonMatch) {
+      CHAPTERS_LIST = JSON.parse(jsonMatch[1]);
+      console.log(`[SEO] Reloaded ${CHAPTERS_LIST.length} chapters from disk.`);
+    }
+  } catch (err) {
+    console.error('[SEO] Failed to reload chapters.js:', err.message);
+  }
+}
+
+/**
+ * Cache-refresh callback passed to the sync scheduler.
+ * Invoked after each new chapter is saved to disk.
+ *
+ * @param {number}   chapterNumber
+ * @param {string}   chapterId     — WeebCentral chapter ID
+ * @param {string[]} images        — array of image URLs for the chapter
+ */
+function onNewChapterSaved(chapterNumber, chapterId, images) {
+  // Update KNOWN_CHAPTER_IDS so subsequent /chapter-images requests hit the cache path
+  KNOWN_CHAPTER_IDS[chapterNumber] = chapterId;
+
+  // Pre-warm the image cache so the first reader request is instant
+  if (images && images.length > 0) {
+    chapterImagesCache[chapterNumber] = images;
+    console.log(`[Sync] Cache pre-warmed for Ch.${chapterNumber} (${images.length} pages).`);
+  }
+
+  // Refresh the CHAPTERS_LIST used by the SEO renderer
+  reloadChaptersFromDisk();
+}
+
 // ── Security & Cache Headers Helper ──
 function addSecurityHeaders(res, extra = {}) {
   res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -909,4 +949,9 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   console.log(`HxH Server running at http://localhost:${PORT}`);
   console.log(`[WeebCentral] Source configured: CDN + WeebCentral HTMX fallback`);
+
+  // Start the automatic 24-hour chapter sync scheduler.
+  // Runs in the background; never blocks the HTTP server.
+  const { startSyncScheduler } = require('./sync/chapter-sync');
+  startSyncScheduler(onNewChapterSaved);
 });
