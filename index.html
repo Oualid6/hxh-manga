@@ -135,7 +135,7 @@
     <div class="hero-content">
       <div class="hero-badge">
         <span class="badge-dot" aria-hidden="true"></span>
-        <span data-i18n="hero_ongoing">Ongoing · Chapter 412</span>
+        <span data-i18n="hero_ongoing">Ongoing · Chapter 416</span>
       </div>
       <!-- H1: Styled visually as "HUNTER × HUNTER" but carries full SEO keyword via aria-label -->
       <h1 class="hero-title" aria-label="Hunter x Hunter Manga Online" data-i18n-aria-label="seo_h1">
@@ -146,18 +146,18 @@
       <p class="hero-subtitle"><span data-i18n="hero_by">by</span> <strong>Yoshihiro Togashi</strong></p>
       <p class="hero-desc" data-i18n="hero_desc">Hunters are a special breed, dedicated to tracking down treasures, magical beasts, and even other men. But such pursuits require a license, and less than one in a hundred thousand can pass the grueling qualification exam.</p>
       <div class="hero-actions">
-        <button class="btn-primary" onclick="readChapter(1)" aria-label="Start reading Hunter x Hunter from Chapter 1">
+        <button class="btn-primary" id="hero-start-btn" onclick="readChapter(1)" aria-label="Start reading Hunter x Hunter from Chapter 1">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
           <span data-i18n="btn_start_reading">Start Reading</span>
         </button>
-        <button class="btn-secondary" onclick="readChapter(412)" aria-label="Read Hunter x Hunter latest chapter — Chapter 412">
+        <button class="btn-secondary" id="hero-latest-btn" onclick="readLatestChapter()" aria-label="Read Hunter x Hunter latest chapter">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
           <span data-i18n="btn_latest_chapter">Latest Chapter</span>
         </button>
       </div>
       <div class="hero-stats" aria-label="Hunter x Hunter manga statistics">
         <div class="stat">
-          <span class="stat-num">412</span>
+          <span class="stat-num" id="stat-chapters-count">416</span>
           <span class="stat-label" data-i18n="stats_chapters">Chapters</span>
         </div>
         <div class="stat-divider" aria-hidden="true"></div>
@@ -296,19 +296,19 @@
         <details class="faq-item">
           <summary class="faq-question" data-i18n="faq_q1">Where can I read Hunter x Hunter manga online?</summary>
           <div class="faq-answer">
-            <p data-i18n="faq_a1">You can read <strong>Hunter x Hunter manga online</strong> for free right here on HXH Reader. All 412+ chapters are available in English with high-quality scans and a clean reading interface. No registration or subscription required.</p>
+            <p data-i18n="faq_a1">You can read <strong>Hunter x Hunter manga online</strong> for free right here on HXH Reader. All chapters are available in English with high-quality scans and a clean reading interface. No registration or subscription required.</p>
           </div>
         </details>
         <details class="faq-item">
           <summary class="faq-question" data-i18n="faq_q2">Is Hunter x Hunter manga still ongoing?</summary>
           <div class="faq-answer">
-            <p data-i18n="faq_a2">Yes, <strong>Hunter x Hunter</strong> is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022 after a long hiatus. As of 2026, the latest chapter is <a href="/chapter/412">Chapter 412</a>, continuing the Succession Contest Arc aboard the Black Whale ship.</p>
+            <p data-i18n="faq_a2">Yes, <strong>Hunter x Hunter</strong> is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022 after a long hiatus. The series continues the Succession Contest Arc aboard the Black Whale ship with brand new chapters.</p>
           </div>
         </details>
         <details class="faq-item">
           <summary class="faq-question" data-i18n="faq_q3">What is the latest Hunter x Hunter chapter?</summary>
           <div class="faq-answer">
-            <p data-i18n="faq_a3">The latest Hunter x Hunter chapter is <a href="/chapter/412"><strong>Chapter 412</strong></a>. New Hunter x Hunter manga updates are added to HXH Reader as soon as they are released by Yoshihiro Togashi in Weekly Shōnen Jump.</p>
+            <p data-i18n="faq_a3">New Hunter x Hunter manga updates are added to HXH Reader as soon as they are released by Yoshihiro Togashi in Weekly Shōnen Jump.</p>
           </div>
         </details>
         <details class="faq-item">
@@ -320,7 +320,7 @@
         <details class="faq-item">
           <summary class="faq-question" data-i18n="faq_q5">What are the main Hunter x Hunter story arcs?</summary>
           <div class="faq-answer">
-            <p data-i18n="faq_a5">Hunter x Hunter has 9 major story arcs: <strong>Hunter Exam Arc</strong> (Ch. 1–38), <strong>Zoldyck Family Arc</strong> (Ch. 39–43), <strong>Heavens Arena Arc</strong> (Ch. 44–63), <strong>Yorknew City Arc</strong> (Ch. 64–119), <strong>Greed Island Arc</strong> (Ch. 120–185), <strong>Chimera Ant Arc</strong> (Ch. 186–318), <strong>13th Chairman Election Arc</strong> (Ch. 319–339), <strong>Dark Continent Expedition</strong> (Ch. 340–348), and the ongoing <strong>Succession Contest Arc</strong> (Ch. 349–412).</p>
+            <p data-i18n="faq_a5">Hunter x Hunter has 9 major story arcs: <strong>Hunter Exam Arc</strong> (Ch. 1–38), <strong>Zoldyck Family Arc</strong> (Ch. 39–43), <strong>Heavens Arena Arc</strong> (Ch. 44–63), <strong>Yorknew City Arc</strong> (Ch. 64–119), <strong>Greed Island Arc</strong> (Ch. 120–185), <strong>Chimera Ant Arc</strong> (Ch. 186–318), <strong>13th Chairman Election Arc</strong> (Ch. 319–339), <strong>Dark Continent Expedition</strong> (Ch. 340–348), and the ongoing <strong>Succession Contest Arc</strong> (Ch. 349+).</p>
           </div>
         </details>
       </div>
@@ -446,7 +446,7 @@
       <a href="/chapter/1">Chapter 1 — Start</a>
       <a href="/chapter/186">Chapter 186 — Chimera Ant</a>
       <a href="/chapter/349">Chapter 349 — Succession</a>
-      <a href="/chapter/412">Chapter 412 — Latest</a>
+      <a href="/chapters" id="footer-latest-link">Latest Chapters</a>
     </div>
     <div class="footer-links">
       <h3 data-i18n="footer_legal">Legal</h3>

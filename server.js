@@ -261,6 +261,8 @@ try {
 }
 reloadChaptersFromDisk();
 
+let lastChaptersJsMtime = 0;
+
 /**
  * Reload CHAPTERS_LIST from disk and update KNOWN_CHAPTER_IDS in-memory.
  * Called by the sync scheduler after a new chapter is persisted.
@@ -287,6 +289,17 @@ function reloadChaptersFromDisk() {
   } catch (err) {
     console.error('[SEO] Failed to reload chapters.js:', err.message);
   }
+}
+
+function checkAndReloadChapters() {
+  try {
+    const chaptersPath = path.join(__dirname, 'chapters.js');
+    const stat = fs.statSync(chaptersPath);
+    if (stat.mtimeMs !== lastChaptersJsMtime) {
+      lastChaptersJsMtime = stat.mtimeMs;
+      reloadChaptersFromDisk();
+    }
+  } catch (_) {}
 }
 
 /**
@@ -543,8 +556,14 @@ const LANG_MAP = { en: 'EN', es: 'ES', fr: 'FR', de: 'DE', tr: 'TR', ja: 'JP', a
 const LOCALE_MAP = { en: 'en_US', es: 'es_ES', fr: 'fr_FR', de: 'de_DE', tr: 'tr_TR', ja: 'ja_JP', ar: 'ar_SA' };
 
 function t(key, langCode) {
-  return (TRANSLATIONS[langCode] && TRANSLATIONS[langCode][key]) ||
-         (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
+  const raw = (TRANSLATIONS[langCode] && TRANSLATIONS[langCode][key]) ||
+              (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
+  const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
+  const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 416;
+  return raw
+    .replace(/\{ch\}/g, latestNum)
+    .replace(/\{count\}/g, totalCount)
+    .replace(/\b412\b/g, latestNum);
 }
 
 function getArcName(arcId, langCode) {
@@ -567,6 +586,7 @@ function translateHtml(html, langCode) {
 
 // ── Serve index.html with injected SEO metadata ──
 function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', langPrefix = 'en') {
+  checkAndReloadChapters();
   const indexPath = path.join(__dirname, 'index.html');
   fs.readFile(indexPath, 'utf8', (err, html) => {
     if (err) {
@@ -718,10 +738,15 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     const htmlLang = langCode === 'JP' ? 'ja' : langCode.toLowerCase();
     const htmlDir  = langCode === 'AR' ? ' dir="rtl"' : '';
 
+    const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
+    const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 416;
+
     let parsedHtml = html
       .replace(/<html([^>]*) lang="[^"]*"([^>]*)>/, `<html$1 lang="${htmlLang}"${htmlDir}$2>`)
       .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
       .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${desc.replace(/"/g, '&quot;')}" />`)
+      .replace(/Ongoing · Chapter \d+/gi, `Ongoing · Chapter ${latestNum}`)
+      .replace(/id="stat-chapters-count">\d+</gi, `id="stat-chapters-count">${totalCount}<`)
       .replace(/href="\/placeholder-canonical"/, `href="${siteUrl}${pagePath}"`)
       .replace(/content="\/placeholder-url"/, `content="${pageUrl}"`)
       .replace(/content="\/cover-image"/g, `content="${coverUrl}"`)

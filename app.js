@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupParticles();
   setupScrollHandlers();
   initLang(); // Restore persisted language
+  updateDynamicUi();
   
   // Close mobile menu when clicking any link inside it
   const mobMenu = document.getElementById('mobile-menu');
@@ -1747,7 +1748,8 @@ function translateUI() {
     sortLabel.textContent = currentState.sortNewestFirst ? t('sort_newest') : t('sort_oldest');
   }
 
-  // Rerender lists to apply translation dynamically
+  // Rerender lists and dynamic UI elements to apply translation dynamically
+  updateDynamicUi();
   renderArcs();
   renderRecentChapters();
   
@@ -1972,10 +1974,63 @@ function buildSeoSchema(lang, siteUrl, pagePath, title, desc) {
   return {};
 }
 
-/** Translate lookup helper */
+/** Translate lookup helper with dynamic chapter count and latest chapter substitution */
 function t(key) {
   const lang = currentState.currentLang || 'EN';
-  return (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
+  let text = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
+  const latestNum = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1].number : 416;
+  const countCh   = CHAPTERS.length > 0 ? CHAPTERS.length : 416;
+
+  return text
+    .replace(/\{ch\}/g, latestNum)
+    .replace(/\{count\}/g, countCh)
+    .replace(/\b412\b/g, latestNum);
+}
+
+/** Update hero badge, stats counter, latest chapter button, and footer links dynamically */
+function updateDynamicUi() {
+  const totalCount = CHAPTERS.length;
+  const latestCh   = totalCount > 0 ? CHAPTERS[totalCount - 1] : { number: 416, title: 'Chapter 416' };
+  const latestNum  = latestCh.number;
+
+  // 1. Hero badge: "Ongoing · Chapter {LATEST_CHAPTER.number}"
+  const heroBadge = document.querySelector('.hero-badge span[data-i18n="hero_ongoing"]');
+  if (heroBadge) {
+    const rawBadgeText = t('hero_ongoing');
+    heroBadge.textContent = rawBadgeText.replace('{ch}', latestNum).replace(/\b412\b/g, latestNum);
+  }
+
+  // 2. Latest chapter button: link to /chapter/{LATEST_CHAPTER.number}
+  const latestBtn = document.getElementById('hero-latest-btn');
+  if (latestBtn) {
+    latestBtn.onclick = () => readLatestChapter();
+    latestBtn.setAttribute('aria-label', `Read Hunter x Hunter latest chapter — Chapter ${latestNum}`);
+  }
+
+  // 3. Start Reading button: link to /chapter/1 (always Chapter 1)
+  const startBtn = document.getElementById('hero-start-btn');
+  if (startBtn) {
+    startBtn.onclick = () => readChapter(1);
+    startBtn.setAttribute('aria-label', 'Start reading Hunter x Hunter from Chapter 1');
+  }
+
+  // 4. Homepage statistics: CHAPTERS.length chapters available
+  const statCount = document.getElementById('stat-chapters-count');
+  if (statCount) {
+    statCount.textContent = totalCount;
+  }
+
+  // 5. Footer latest link
+  const footerLatest = document.getElementById('footer-latest-link');
+  if (footerLatest) {
+    footerLatest.href = `/chapter/${latestNum}`;
+    footerLatest.textContent = `${t('breadcrumb_chapter_prefix')} ${latestNum} — ${t('latest_release')}`;
+  }
+}
+
+function readLatestChapter() {
+  const latestNum = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1].number : 1;
+  navigateTo(`/chapter/${latestNum}`);
 }
 
 /** Dynamic chapter formatting based on language styles */
