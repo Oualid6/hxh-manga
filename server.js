@@ -59,7 +59,7 @@ const ARCS = [
   { id: 6, name: "Chimera Ant Arc",           start: 186, end: 318 },
   { id: 7, name: "13th Chairman Election Arc",start: 319, end: 339 },
   { id: 8, name: "Dark Continent Expedition", start: 340, end: 348 },
-  { id: 9, name: "Succession Contest Arc",    start: 349, end: 412 },
+  { id: 9, name: "Succession Contest Arc",    start: 349, end: 9999 },
 ];
 
 // ── FAQ data (shared between schema and HTML) ──
@@ -655,7 +655,8 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const nextNum = chNum < 412 ? chNum + 1 : null;
+      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 412;
+      const nextNum = chNum < maxCh ? chNum + 1 : null;
       const articleSchema = {
         "@type": "Article",
         "headline": title,
@@ -891,7 +892,8 @@ const server = http.createServer(async (req, res) => {
   const chapterMatch = pathname.match(/^\/chapter\/(\d+)$/);
   if (chapterMatch) {
     const chNum = parseInt(chapterMatch[1]);
-    if (!isNaN(chNum) && chNum >= 1 && chNum <= 412) {
+    const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 1000;
+    if (!isNaN(chNum) && chNum >= 1 && chNum <= maxCh) {
       serveIndexWithSeo(req, res, 'chapter', chNum, langCode, langPrefix);
       return;
     }
@@ -937,8 +939,9 @@ const server = http.createServer(async (req, res) => {
       }
       const ext = path.extname(filePath).toLowerCase();
       const contentType = MIME_TYPES[ext] || 'application/octet-stream';
-      const isImmutable = ['.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2'].includes(ext);
-      addSecurityHeaders(res, { 'Cache-Control': isImmutable ? 'public, max-age=31536000' : 'no-cache' });
+      const isChaptersJs = pathname === '/chapters.js';
+      const isImmutable  = !isChaptersJs && ['.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2'].includes(ext);
+      addSecurityHeaders(res, { 'Cache-Control': isImmutable ? 'public, max-age=86400' : 'no-cache, must-revalidate' });
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(data);
     });

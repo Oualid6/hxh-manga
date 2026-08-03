@@ -170,18 +170,16 @@ function startSyncScheduler(cacheRefreshCallback) {
     onNewChapterSaved = cacheRefreshCallback;
   }
 
-  // Delay the first run so it doesn't slow down server startup
-  setTimeout(() => {
-    checkAndSync();
+  // Execute initial sync immediately on server startup
+  log('Executing initial chapter sync on server boot...');
+  checkAndSync().catch(err => logError('Initial boot sync failed:', err));
 
-    // Then run every 24 hours
-    setInterval(() => {
-      checkAndSync();
-    }, SYNC_INTERVAL_MS);
+  // Schedule recurring sync every 24 hours
+  setInterval(() => {
+    checkAndSync().catch(err => logError('Interval sync failed:', err));
+  }, SYNC_INTERVAL_MS);
 
-  }, INITIAL_DELAY_MS);
-
-  log(`Scheduler started. First sync in ${INITIAL_DELAY_MS / 1000}s, then every ${SYNC_INTERVAL_MS / 3600000}h.`);
+  log(`Scheduler active — running every ${SYNC_INTERVAL_MS / 3600000} hours.`);
 }
 
 module.exports = { startSyncScheduler, checkAndSync };

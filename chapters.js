@@ -1,4 +1,5 @@
 const CHAPTERS = [
+ 
   {
     "number": 1,
     "title": "The Day Of The Departure"
@@ -1646,5 +1647,22 @@ const CHAPTERS = [
   {
     "number": 412,
     "title": "Chapter 412"
+  },
+  {
+    "number": 413,
+    "title": "Chapter 413"
+  },
+  {
+    "number": 414,
+    "title": "Chapter 414"
+  },
+  {
+    "number": 415,
+    "title": "Chapter 415"
+  },
+  {
+    "number": 416,
+    "title": "Chapter 416"
   }
+
 ];
