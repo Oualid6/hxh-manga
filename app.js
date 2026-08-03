@@ -617,35 +617,64 @@ async function loadChapterPages(chNum) {
 
   images.forEach((rawUrl, idx) => {
     const pageContainer = document.createElement('div');
-    pageContainer.style.width = '100%';
-    pageContainer.style.display = 'flex';
-    pageContainer.style.justifyContent = 'center';
-    pageContainer.style.position = 'relative';
+    pageContainer.className = 'reader-page-container';
 
     const skeleton = document.createElement('div');
     skeleton.className = 'page-skeleton';
     pageContainer.appendChild(skeleton);
-    readerPages.appendChild(pageContainer);
 
     const img = document.createElement('img');
-    img.className = 'reader-page-img hidden';
+    img.className = 'reader-page-img';
     // Descriptive, keyword-rich alt text for image SEO
     img.alt = `Hunter x Hunter Chapter ${chNum}: "${chTitleText}" — Page ${idx + 1}`;
     img.decoding = 'async';
-    // First 3 pages eager-load; rest are lazy for performance
-    img.loading = idx < 3 ? 'eager' : 'lazy';
-    img.src = `/proxy-image?url=${encodeURIComponent(rawUrl)}`;
 
-    img.onload = () => {
-      skeleton.remove();
-      img.classList.remove('hidden');
+    const proxiedUrl = `/proxy-image?url=${encodeURIComponent(rawUrl)}`;
+
+    const handleLoadSuccess = () => {
+      if (skeleton.parentNode) {
+        skeleton.remove();
+      }
+      img.classList.add('loaded');
     };
+
+    img.onload = handleLoadSuccess;
 
     img.onerror = () => {
-      pageContainer.remove();
+      if (skeleton.parentNode) {
+        skeleton.remove();
+      }
+      img.style.display = 'none';
+
+      const errorCard = document.createElement('div');
+      errorCard.className = 'page-error-card';
+      errorCard.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <p>Failed to load Page ${idx + 1}</p>
+        <button class="btn-retry-page">Retry Page ${idx + 1}</button>
+      `;
+      const retryBtn = errorCard.querySelector('.btn-retry-page');
+      retryBtn.onclick = () => {
+        errorCard.remove();
+        pageContainer.appendChild(skeleton);
+        img.style.display = '';
+        img.src = `${proxiedUrl}&t=${Date.now()}`;
+      };
+      pageContainer.appendChild(errorCard);
     };
 
+    // Assign src after handlers registered
+    img.src = proxiedUrl;
+
+    // Handle cached images that load immediately before handler binding
+    if (img.complete && img.naturalWidth > 0) {
+      handleLoadSuccess();
+    }
+
     pageContainer.appendChild(img);
+    readerPages.appendChild(pageContainer);
   });
 
   // After images are rendered, show suggested chapters

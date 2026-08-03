@@ -1025,12 +1025,31 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   max-width: 900px;
   margin: 0 auto;
 }
+.reader-page-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  position: relative;
+  min-height: 200px;
+}
 .reader-page-img {
   width: 100%;
   max-width: 800px;
   height: auto;
   display: block;
   border-radius: 4px;
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: opacity 0.3s ease-in-out;
+}
+.reader-page-img.loaded {
+  opacity: 1;
+  position: relative;
+  left: auto;
+  transform: none;
 }
 .page-skeleton {
   width: 100%;
@@ -1051,6 +1070,34 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 }
 @keyframes shimmer {
   100% { transform: translateX(100%); }
+}
+.page-error-card {
+  width: 100%;
+  max-width: 800px;
+  height: 260px;
+  background: var(--bg-card);
+  border: 1px dashed var(--border, rgba(255,255,255,0.15));
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: var(--text-2);
+  margin: 16px 0;
+}
+.btn-retry-page {
+  background: var(--gold, #d4af37);
+  color: #000;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.btn-retry-page:hover {
+  opacity: 0.85;
 }
 .loading-indicator {
   display: flex;
