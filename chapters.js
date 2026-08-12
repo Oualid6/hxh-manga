@@ -1663,6 +1663,10 @@ const CHAPTERS = [
   {
     "number": 416,
     "title": "Chapter 416"
+  },
+  {
+    "number": 417,
+    "title": "Chapter 417"
   }
 
 ];
