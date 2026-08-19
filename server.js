@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-const PORT = 8000;
+const PORT = process.env.PORT || 8000;
 
 const MIME_TYPES = {
   '.html': 'text/html',
@@ -584,7 +584,64 @@ function translateHtml(html, langCode) {
   return html;
 }
 
-// ── Serve index.html with injected SEO metadata ──
+// ── Helper to detect absolute site URL (defaults to HTTPS in production) ──
+function getSiteUrl(req) {
+  let proto = req.headers['x-forwarded-proto'] || (req.socket && req.socket.encrypted ? 'https' : 'http');
+  if (proto.includes(',')) proto = proto.split(',')[0].trim();
+  const host = req.headers.host || 'localhost:8000';
+  if (!host.includes('localhost') && !host.includes('127.0.0.1') && proto === 'http') {
+    proto = 'https';
+  }
+  return `${proto}://${host}`;
+}
+
+// ── Serve 404 Error Page ──
+function serve404(req, res, langCode = 'EN', langPrefix = 'en') {
+  const siteUrl = getSiteUrl(req);
+  const html = `<!DOCTYPE html>
+<html lang="${langPrefix}">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 Page Not Found | HXH Reader</title>
+  <meta name="robots" content="noindex, follow" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body style="background:#09090b;color:#f4f4f5;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;padding:1rem;">
+  <div>
+    <h1 style="font-size:5rem;font-weight:900;margin:0;color:#ef4444;">404</h1>
+    <h2 style="font-size:1.5rem;margin:1rem 0;color:#ffffff;">Page Not Found</h2>
+    <p style="color:#a1a1aa;margin-bottom:2rem;">The requested chapter or page does not exist.</p>
+    <a href="/${langPrefix}/" style="display:inline-block;padding:0.75rem 1.5rem;background:#ef4444;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Return to Homepage</a>
+  </div>
+</body>
+</html>`;
+  addSecurityHeaders(res, { 'Cache-Control': 'no-store' });
+  res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end(html);
+}
+
+// ── Serve Static HTML files with Absolute Canonical Tags ──
+function serveStaticHtmlWithSeo(req, res, filePath, pathname) {
+  fs.readFile(filePath, 'utf8', (err, html) => {
+    if (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain' });
+      res.end('Internal Server Error');
+      return;
+    }
+    const siteUrl = getSiteUrl(req);
+    const fullUrl = `${siteUrl}${pathname}`;
+    let parsedHtml = html
+      .replace(/<link rel="canonical" href="[^"]*" \/>/, `<link rel="canonical" href="${fullUrl}" />`)
+      .replace(/<meta property="og:url" content="[^"]*" \/>/, `<meta property="og:url" content="${fullUrl}" />`);
+    
+    addSecurityHeaders(res, { 'Cache-Control': 'no-cache, must-revalidate' });
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(parsedHtml);
+  });
+}
+
+// ── Serve index.html with injected SEO metadata & SSR HTML content ──
 function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', langPrefix = 'en') {
   checkAndReloadChapters();
   const indexPath = path.join(__dirname, 'index.html');
@@ -595,9 +652,7 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       return;
     }
 
-    const proto = req.headers['x-forwarded-proto'] || 'http';
-    const host = req.headers.host || 'localhost:8000';
-    const siteUrl = `${proto}://${host}`;
+    const siteUrl = getSiteUrl(req);
     const coverUrl = `${siteUrl}/cover-image`;
 
     // Determine page-specific path and SEO content
@@ -686,7 +741,7 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 412;
+      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
       const nextNum = chNum < maxCh ? chNum + 1 : null;
       const articleSchema = {
         "@type": "Article",
@@ -760,6 +815,55 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
         `<script type="application/ld+json" id="structured-data">\n${schemaString}\n</script>`)
       .replace('</head>', `${alternatesHtml}${langInitScript}</head>`);
 
+    // ── Inject SSR HTML body content for chapter & chapters views ──
+    if (pageType === 'chapter') {
+      const chNum = parseInt(param);
+      const chData = CHAPTERS_LIST.find(c => c.number === chNum);
+      const chTitle = chData ? chData.title : `Chapter ${chNum}`;
+      const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
+      const arcName = arc ? getArcName(arc.id, langCode) : '';
+      const prevNum = chNum > 1 ? chNum - 1 : null;
+      const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
+      const nextNum = chNum < maxCh ? chNum + 1 : null;
+
+      const ssrChapterHtml = `
+      <article class="ssr-chapter-container" style="max-width:900px;margin:2rem auto;padding:1.5rem;background:rgba(24,24,27,0.9);border-radius:12px;color:#f4f4f5;border:1px solid #27272a;">
+        <header style="margin-bottom:1.5rem;">
+          <h1 style="font-size:2rem;font-weight:800;color:#ffffff;margin-bottom:0.5rem;">Hunter x Hunter Chapter ${chNum}: ${chTitle}</h1>
+          ${arcName ? `<span style="display:inline-block;padding:0.25rem 0.75rem;background:#3f3f46;border-radius:9999px;font-size:0.85rem;color:#e4e4e7;font-weight:500;">${arcName}</span>` : ''}
+        </header>
+        <p style="font-size:1.05rem;line-height:1.6;color:#d4d4d8;margin-bottom:1.5rem;">
+          Read Hunter x Hunter Chapter ${chNum} online free. Official manga release translated into ${langCode}. Follow Gon Freecss and Killua Zoldyck on their Hunter adventures.
+        </p>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:1rem;">
+          ${prevNum ? `<a href="/${langPrefix}/chapter/${prevNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">‹ ${t('breadcrumb_chapter_prefix', langCode)} ${prevNum}</a>` : ''}
+          <a href="/${langPrefix}/chapters" style="padding:0.6rem 1.2rem;background:#ef4444;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapters', langCode)}</a>
+          ${nextNum ? `<a href="/${langPrefix}/chapter/${nextNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapter_prefix', langCode)} ${nextNum} ›</a>` : ''}
+        </div>
+      </article>`;
+
+      parsedHtml = parsedHtml
+        .replace('<main id="home-view">', '<main id="home-view" class="hidden">')
+        .replace('<div id="reader-view" class="hidden">', `<div id="reader-view">\n${ssrChapterHtml}`);
+    } else if (pageType === 'chapters') {
+      const chaptersGridHtml = `
+      <section class="ssr-chapters-container" style="max-width:1100px;margin:2rem auto;padding:1rem;">
+        <h1 style="font-size:2rem;font-weight:800;color:#ffffff;margin-bottom:1rem;">Hunter x Hunter — All Manga Chapters</h1>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;">
+          ${CHAPTERS_LIST.map(c => `
+            <a href="/${langPrefix}/chapter/${c.number}" style="display:block;padding:1rem;background:#18181b;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #27272a;transition:border-color 0.2s;">
+              <div style="font-weight:700;font-size:1.05rem;">Chapter ${c.number}: ${c.title}</div>
+              <div style="font-size:0.85rem;color:#a1a1aa;margin-top:0.3rem;">Read Chapter ${c.number} Online</div>
+            </a>
+          `).join('')}
+        </div>
+      </section>`;
+
+      parsedHtml = parsedHtml
+        .replace('<main id="home-view">', '<main id="home-view" class="hidden">')
+        .replace('<div id="chapter-list-view" class="hidden">', `<div id="chapter-list-view">\n${chaptersGridHtml}`);
+    }
+
     addSecurityHeaders(res, { 'Cache-Control': 'no-store' });
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(parsedHtml);
@@ -768,7 +872,17 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
 
 const server = http.createServer(async (req, res) => {
   const parsedUrl = url.parse(req.url, true);
-  let pathname  = parsedUrl.pathname;
+  const rawPathname = parsedUrl.pathname;
+
+  // 301 Redirect trailing slashes (e.g. /en/chapter/1/ -> /en/chapter/1) except root /
+  if (rawPathname.length > 1 && rawPathname.endsWith('/')) {
+    const cleanPath = rawPathname.slice(0, -1);
+    res.writeHead(301, { 'Location': cleanPath });
+    res.end();
+    return;
+  }
+
+  let pathname = rawPathname;
 
   // ── Parse language prefix from URL ──
   let langCode   = 'EN';
@@ -857,21 +971,37 @@ const server = http.createServer(async (req, res) => {
 
   // ── 3. Sitemap ──
   if (pathname === '/sitemap.xml') {
-    const proto   = req.headers['x-forwarded-proto'] || 'http';
-    const host    = req.headers.host || 'localhost:8000';
-    const siteUrl = `${proto}://${host}`;
+    const siteUrl = getSiteUrl(req);
     const today   = todayISO();
 
-    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n';
+    let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n';
 
     SUPPORTED_LANGS.forEach(lp => {
-      xml += `  <url>\n    <loc>${siteUrl}/${lp}/</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
-      xml += `  <url>\n    <loc>${siteUrl}/${lp}/chapters</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
+      xml += `  <url>\n    <loc>${siteUrl}/${lp}/</loc>\n`;
+      SUPPORTED_LANGS.forEach(altLp => {
+        xml += `    <xhtml:link rel="alternate" hreflang="${altLp}" href="${siteUrl}/${altLp}/" />\n`;
+      });
+      xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}/en/" />\n`;
+      xml += `    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>1.0</priority>\n  </url>\n`;
+    });
+
+    SUPPORTED_LANGS.forEach(lp => {
+      xml += `  <url>\n    <loc>${siteUrl}/${lp}/chapters</loc>\n`;
+      SUPPORTED_LANGS.forEach(altLp => {
+        xml += `    <xhtml:link rel="alternate" hreflang="${altLp}" href="${siteUrl}/${altLp}/chapters" />\n`;
+      });
+      xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}/en/chapters" />\n`;
+      xml += `    <lastmod>${today}</lastmod>\n    <changefreq>daily</changefreq>\n    <priority>0.9</priority>\n  </url>\n`;
     });
 
     CHAPTERS_LIST.forEach(c => {
       SUPPORTED_LANGS.forEach(lp => {
-        xml += `  <url>\n    <loc>${siteUrl}/${lp}/chapter/${c.number}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
+        xml += `  <url>\n    <loc>${siteUrl}/${lp}/chapter/${c.number}</loc>\n`;
+        SUPPORTED_LANGS.forEach(altLp => {
+          xml += `    <xhtml:link rel="alternate" hreflang="${altLp}" href="${siteUrl}/${altLp}/chapter/${c.number}" />\n`;
+        });
+        xml += `    <xhtml:link rel="alternate" hreflang="x-default" href="${siteUrl}/en/chapter/${c.number}" />\n`;
+        xml += `    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>0.7</priority>\n  </url>\n`;
       });
     });
 
@@ -895,12 +1025,10 @@ const server = http.createServer(async (req, res) => {
 
   // ── 4. Robots.txt ──
   if (pathname === '/robots.txt') {
-    const proto   = req.headers['x-forwarded-proto'] || 'http';
-    const host    = req.headers.host || 'localhost:8000';
-    const siteUrl = `${proto}://${host}`;
+    const siteUrl = getSiteUrl(req);
     const robots = [
       'User-agent: *', 'Allow: /',
-      'Disallow: /proxy-image', 'Disallow: /chapter-images', 'Disallow: /cover-image',
+      'Disallow: /proxy-image', 'Disallow: /chapter-images',
       '', `Sitemap: ${siteUrl}/sitemap.xml`
     ].join('\n');
     addSecurityHeaders(res, { 'Cache-Control': 'public, max-age=86400' });
@@ -909,8 +1037,22 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // ── 5. Clean URLs & SPA View Interceptors ──
-  if (pathname === '/' || pathname === '/home' || pathname === '') {
+  // ── 5. Clean URLs, Trailing Slashes & Redirects ──
+  if (pathname === '/index.html' || pathname === '/index' || pathname === '/home') {
+    res.writeHead(301, { 'Location': `/${langPrefix}/` });
+    res.end();
+    return;
+  }
+
+  if (pathname.length > 1 && pathname.endsWith('/')) {
+    const cleanPath = pathname.slice(0, -1);
+    const redirectUrl = `/${langPrefix}${cleanPath === '/' ? '/' : cleanPath}`;
+    res.writeHead(301, { 'Location': redirectUrl });
+    res.end();
+    return;
+  }
+
+  if (pathname === '/' || pathname === '') {
     serveIndexWithSeo(req, res, 'home', null, langCode, langPrefix);
     return;
   }
@@ -931,6 +1073,9 @@ const server = http.createServer(async (req, res) => {
     const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 1000;
     if (!isNaN(chNum) && chNum >= 1 && chNum <= maxCh) {
       serveIndexWithSeo(req, res, 'chapter', chNum, langCode, langPrefix);
+      return;
+    } else {
+      serve404(req, res, langCode, langPrefix);
       return;
     }
   }
@@ -959,11 +1104,17 @@ const server = http.createServer(async (req, res) => {
     if (err || !stats.isFile()) {
       const ext = path.extname(pathname);
       if (!ext) {
-        serveIndexWithSeo(req, res, 'home', null, langCode, langPrefix);
+        serve404(req, res, langCode, langPrefix);
       } else {
         res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Not Found');
       }
+      return;
+    }
+
+    const ext = path.extname(filePath).toLowerCase();
+    if (ext === '.html') {
+      serveStaticHtmlWithSeo(req, res, filePath, pathname);
       return;
     }
 
@@ -973,7 +1124,6 @@ const server = http.createServer(async (req, res) => {
         res.end('Internal Server Error');
         return;
       }
-      const ext = path.extname(filePath).toLowerCase();
       const contentType = MIME_TYPES[ext] || 'application/octet-stream';
       const isChaptersJs = pathname === '/chapters.js';
       const isImmutable  = !isChaptersJs && ['.css', '.js', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.ico', '.woff2'].includes(ext);
