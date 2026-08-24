@@ -1667,6 +1667,10 @@ const CHAPTERS = [
   {
     "number": 417,
     "title": "Chapter 417"
+  },
+  {
+    "number": 418,
+    "title": "Chapter 418"
   }
 
 ];
