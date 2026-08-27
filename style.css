@@ -80,16 +80,23 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
-  height: 64px;
+  height: 96px;
   display: flex;
   align-items: center;
   gap: 32px;
 }
 .nav-logo {
-  font-size: 1.5rem;
-  font-weight: 900;
-  letter-spacing: -1px;
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
+  text-decoration: none;
+}
+.logo-img {
+  height: 72px;
+  width: auto;
+  max-height: 76px;
+  object-fit: contain;
+  display: block;
 }
 .logo-hx { color: var(--gold); }
 .logo-h  { color: var(--teal); }
@@ -801,7 +808,7 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ════════════════════════════════════════
    CHAPTER LIST VIEW
    ════════════════════════════════════════ */
-#chapter-list-view { padding-top: 64px; }
+#chapter-list-view { padding-top: 96px; }
 .cl-header {
   background: linear-gradient(to bottom, var(--bg-2), var(--bg));
   border-bottom: 1px solid var(--border);
@@ -944,10 +951,10 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 /* ════════════════════════════════════════
    READER VIEW
    ════════════════════════════════════════ */
-#reader-view { padding-top: 64px; }
+#reader-view { padding-top: 96px; }
 .reader-topbar {
   position: sticky;
-  top: 64px;
+  top: 96px;
   z-index: 100;
   background: rgba(10,12,18,.92);
   backdrop-filter: blur(16px);
@@ -1165,11 +1172,13 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
   gap: 40px;
 }
 .footer-brand .nav-logo {
-  font-size: 1.75rem;
-  font-weight: 900;
-  letter-spacing: -1px;
+  display: inline-flex;
+  align-items: center;
   margin-bottom: 12px;
-  display: inline-block;
+}
+.footer-brand .logo-img {
+  height: 48px;
+  width: auto;
 }
 .footer-brand p {
   color: var(--text-3);
@@ -1279,7 +1288,8 @@ button { cursor: pointer; border: none; background: none; font-family: inherit; 
 @media (max-width: 640px) {
   .nav-links  { display: none; }
   .nav-search { display: none; }
-  .nav-inner  { gap: 0; }
+  .nav-inner  { gap: 0; height: 80px; padding: 0 16px; }
+  .logo-img   { height: 58px; max-height: 60px; }
 
   /* Logo stays left */
   .nav-logo   { order: 1; }
