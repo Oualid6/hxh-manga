@@ -41,6 +41,13 @@ const KNOWN_CHAPTER_IDS = {
   410: '01JEGSZ9PXVYHCSFVRDYSA8TW5',
   411: '01KW7CH2GAQKQNEAVVCP69S75P',
   412: '01KWSEC6XXZ7A2AJED2BYCWW4N',
+  413: '01KXBDRKSJZYPHMQTJXM0ZKWJT',
+  414: '01KXXEHNVXQPERS32FGKBJS85A',
+  415: '01KYFFANNT0M176C26WA90CBNP',
+  416: '01KZ1G3PPKR0DZHFVCTFR6C4JF',
+  417: '01KZKGWQBZC07FJNQTZ5SDDN2C',
+  418: '01M0QJESKPWF6SJ3F0K2QXV88C',
+  419: '01M19K7T1W4KRCW0PJMGWCBH4S',
 };
 
 // ── In-memory caches ──
@@ -558,8 +565,8 @@ const LOCALE_MAP = { en: 'en_US', es: 'es_ES', fr: 'fr_FR', de: 'de_DE', tr: 'tr
 function t(key, langCode) {
   const raw = (TRANSLATIONS[langCode] && TRANSLATIONS[langCode][key]) ||
               (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
-  const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
-  const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 416;
+  const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
+  const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 419;
   return raw
     .replace(/\{ch\}/g, latestNum)
     .replace(/\{count\}/g, totalCount)
@@ -741,7 +748,7 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
+      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
       const nextNum = chNum < maxCh ? chNum + 1 : null;
       const articleSchema = {
         "@type": "Article",
@@ -793,8 +800,8 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     const htmlLang = langCode === 'JP' ? 'ja' : langCode.toLowerCase();
     const htmlDir  = langCode === 'AR' ? ' dir="rtl"' : '';
 
-    const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
-    const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 416;
+    const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
+    const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 419;
 
     let parsedHtml = html
       .replace(/<html([^>]*) lang="[^"]*"([^>]*)>/, `<html$1 lang="${htmlLang}"${htmlDir}$2>`)
@@ -823,7 +830,7 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
       const arcName = arc ? getArcName(arc.id, langCode) : '';
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 416;
+      const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
       const nextNum = chNum < maxCh ? chNum + 1 : null;
 
       const ssrChapterHtml = `
