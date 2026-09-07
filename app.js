@@ -79,7 +79,7 @@ const ARCS = [
   {
     id: 9,
     name: "Succession Contest Arc",
-    range: "Chapters 349 – 419",
+    range: "Chapters 349 – 420",
     start: 349,
     end: 9999,
     desc: "A deadly battle royale unfolds aboard the Black Whale ship as the Kakin princes fight to the death for the throne using Nen beasts.",
@@ -373,7 +373,7 @@ function renderPopularChapters() {
   if (!grid) return;
   grid.innerHTML = '';
 
-  const latestCh = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1] : { number: 419, title: 'Chapter 419' };
+  const latestCh = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1] : { number: 420, title: 'Chapter 420' };
   const popular = [
     { number: 1,   label: 'Chapter 1',   desc: 'The Day of Departure — where it all begins' },
     { number: 38,  label: 'Chapter 38',  desc: 'Hunter Exam finale — Gon passes' },
@@ -1978,26 +1978,26 @@ function buildSeoSchema(lang, siteUrl, pagePath, title, desc) {
 function t(key) {
   const lang = currentState.currentLang || 'EN';
   let text = (TRANSLATIONS[lang] && TRANSLATIONS[lang][key]) || (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
-  const latestNum = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1].number : 419;
-  const countCh   = CHAPTERS.length > 0 ? CHAPTERS.length : 419;
+  const latestNum = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1].number : 420;
+  const countCh   = CHAPTERS.length > 0 ? CHAPTERS.length : 420;
 
   return text
     .replace(/\{ch\}/g, latestNum)
     .replace(/\{count\}/g, countCh)
-    .replace(/\b412\b/g, latestNum);
+    .replace(/\b(412|419)\b/g, latestNum);
 }
 
 /** Update hero badge, stats counter, latest chapter button, and footer links dynamically */
 function updateDynamicUi() {
   const totalCount = CHAPTERS.length;
-  const latestCh   = totalCount > 0 ? CHAPTERS[totalCount - 1] : { number: 419, title: 'Chapter 419' };
+  const latestCh   = totalCount > 0 ? CHAPTERS[totalCount - 1] : { number: 420, title: 'Chapter 420' };
   const latestNum  = latestCh.number;
 
   // 1. Hero badge: "Ongoing · Chapter {LATEST_CHAPTER.number}"
   const heroBadge = document.querySelector('.hero-badge span[data-i18n="hero_ongoing"]');
   if (heroBadge) {
     const rawBadgeText = t('hero_ongoing');
-    heroBadge.textContent = rawBadgeText.replace('{ch}', latestNum).replace(/\b412\b/g, latestNum);
+    heroBadge.textContent = rawBadgeText.replace('{ch}', latestNum).replace(/\b(412|419)\b/g, latestNum);
   }
 
   // 2. Latest chapter button: link to /chapter/{LATEST_CHAPTER.number}

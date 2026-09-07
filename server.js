@@ -48,6 +48,7 @@ const KNOWN_CHAPTER_IDS = {
   417: '01KZKGWQBZC07FJNQTZ5SDDN2C',
   418: '01M0QJESKPWF6SJ3F0K2QXV88C',
   419: '01M19K7T1W4KRCW0PJMGWCBH4S',
+  420: '01M1VM14Y62MR6M9QD9TRGS7AQ',
 };
 
 // ── In-memory caches ──
@@ -73,15 +74,15 @@ const ARCS = [
 const FAQ_ITEMS = [
   {
     q: "Where can I read Hunter x Hunter manga online?",
-    a: "You can read Hunter x Hunter manga online for free at HXH Reader. All 412+ chapters are available in English, including the latest chapter, with high-quality scans and a clean reading interface."
+    a: "You can read Hunter x Hunter manga online for free at HXH Reader. All 420+ chapters are available in English, including the latest chapter, with high-quality scans and a clean reading interface."
   },
   {
     q: "Is Hunter x Hunter manga still ongoing?",
-    a: "Yes, Hunter x Hunter is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022 after a long hiatus. As of 2026, the latest chapter is Chapter 412, continuing the Succession Contest Arc aboard the Black Whale ship."
+    a: "Yes, Hunter x Hunter is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022 after a long hiatus. As of 2026, the latest chapter is Chapter 420, continuing the Succession Contest Arc aboard the Black Whale ship."
   },
   {
     q: "What is the latest Hunter x Hunter chapter?",
-    a: "The latest Hunter x Hunter chapter is Chapter 412. You can read it for free on HXH Reader. New chapters are added as soon as they are released by Yoshihiro Togashi in Weekly Shōnen Jump."
+    a: "The latest Hunter x Hunter chapter is Chapter 420. You can read it for free on HXH Reader. New chapters are added as soon as they are released by Yoshihiro Togashi in Weekly Shōnen Jump."
   },
   {
     q: "Can I read Hunter x Hunter in English for free?",
@@ -383,22 +384,22 @@ const TRANSLATIONS = {
     seo_title_home: "Hunter x Hunter Manga Online — Read Free | HXH Reader",
     seo_title_chapters: "Read Hunter x Hunter Chapters Online — Full List | HXH Reader",
     seo_title_chapter: "Read HxH Chapter {ch}: {title} Online Free | HXH Reader",
-    seo_desc_home: "Read Hunter x Hunter manga online for free. All 412+ chapters of Togashi's legendary series featuring Gon, Killua & Nen. Updated regularly.",
-    seo_desc_chapters: "Browse all 412 Hunter x Hunter chapters online. From Chapter 1 to the latest, read free manga in English. Updated with new chapters.",
+    seo_desc_home: "Read Hunter x Hunter manga online for free. All 420+ chapters of Togashi's legendary series featuring Gon, Killua & Nen. Updated regularly.",
+    seo_desc_chapters: "Browse all 420 Hunter x Hunter chapters online. From Chapter 1 to the latest, read free manga in English. Updated with new chapters.",
     seo_desc_chapter: "Read Hunter x Hunter Chapter {ch}: \"{title}\" online for free in English. Part of the {arc} Arc. High-quality scans.",
     breadcrumb_home: "Home",
     breadcrumb_chapters: "All Chapters",
     breadcrumb_chapter_prefix: "Chapter",
     faq_q1: "Where can I read Hunter x Hunter manga online?",
-    faq_a1: "You can read Hunter x Hunter manga online for free right here on HXH Reader. All 412+ chapters are available in English with high-quality scans. No registration required.",
+    faq_a1: "You can read Hunter x Hunter manga online for free right here on HXH Reader. All 420+ chapters are available in English with high-quality scans. No registration required.",
     faq_q2: "Is Hunter x Hunter manga still ongoing?",
-    faq_a2: "Yes, Hunter x Hunter is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022. The latest chapter is Chapter 412, continuing the Succession Contest Arc aboard the Black Whale ship.",
+    faq_a2: "Yes, Hunter x Hunter is still ongoing. Written by Yoshihiro Togashi, the series resumed in 2022. The latest chapter is Chapter 420, continuing the Succession Contest Arc aboard the Black Whale ship.",
     faq_q3: "What is the latest Hunter x Hunter chapter?",
-    faq_a3: "The latest Hunter x Hunter chapter is Chapter 412. New chapters are added to HXH Reader as soon as they are released in Weekly Shōnen Jump.",
+    faq_a3: "The latest Hunter x Hunter chapter is Chapter 420. New chapters are added to HXH Reader as soon as they are released in Weekly Shōnen Jump.",
     faq_q4: "Can I read Hunter x Hunter in English for free?",
     faq_a4: "Yes! HXH Reader provides all Hunter x Hunter chapters in English for free, from Chapter 1 all the way to the latest chapter. No subscription needed.",
     faq_q5: "What are the main Hunter x Hunter story arcs?",
-    faq_a5: "Hunter x Hunter has 9 major arcs: Hunter Exam (Ch.1–38), Zoldyck Family (Ch.39–43), Heavens Arena (Ch.44–63), Yorknew City (Ch.64–119), Greed Island (Ch.120–185), Chimera Ant (Ch.186–318), 13th Chairman Election (Ch.319–339), Dark Continent Expedition (Ch.340–348), and Succession Contest (Ch.349–412).",
+    faq_a5: "Hunter x Hunter has 9 major arcs: Hunter Exam (Ch.1–38), Zoldyck Family (Ch.39–43), Heavens Arena (Ch.44–63), Yorknew City (Ch.64–119), Greed Island (Ch.120–185), Chimera Ant (Ch.186–318), 13th Chairman Election (Ch.319–339), Dark Continent Expedition (Ch.340–348), and Succession Contest (Ch.349–420).",
     series_name: "Hunter × Hunter",
     author_name: "Yoshihiro Togashi"
   },
@@ -407,22 +408,22 @@ const TRANSLATIONS = {
     seo_title_home: "Hunter x Hunter Manga Online — Leer Gratis | HXH Reader",
     seo_title_chapters: "Leer Capítulos de Hunter x Hunter Online — Lista | HXH Reader",
     seo_title_chapter: "Leer HxH Capítulo {ch}: {title} Gratis Online | HXH Reader",
-    seo_desc_home: "Lee el manga Hunter x Hunter online gratis. Todos los 412+ capítulos de la serie legendaria de Togashi con Gon, Killua y Nen. Actualizado regularmente.",
-    seo_desc_chapters: "Explora los 412 capítulos de Hunter x Hunter online. Lee manga gratis en español desde el capítulo 1 hasta el último.",
+    seo_desc_home: "Lee el manga Hunter x Hunter online gratis. Todos los 420+ capítulos de la serie legendaria de Togashi con Gon, Killua y Nen. Actualizado regularmente.",
+    seo_desc_chapters: "Explora los 420 capítulos de Hunter x Hunter online. Lee manga gratis en español desde el capítulo 1 hasta el último.",
     seo_desc_chapter: "Lee Hunter x Hunter Capítulo {ch}: \"{title}\" online gratis en español. Parte del Arco {arc}. Escaneos de alta calidad.",
     breadcrumb_home: "Inicio",
     breadcrumb_chapters: "Todos los Capítulos",
     breadcrumb_chapter_prefix: "Capítulo",
     faq_q1: "¿Dónde puedo leer el manga Hunter x Hunter online gratis?",
-    faq_a1: "Puedes leer el manga Hunter x Hunter en línea de forma gratuita aquí en HXH Reader. Todos los 412+ capítulos están disponibles con escaneos de alta calidad.",
+    faq_a1: "Puedes leer el manga Hunter x Hunter en línea de forma gratuita aquí en HXH Reader. Todos los 420+ capítulos están disponibles con escaneos de alta calidad.",
     faq_q2: "¿El manga de Hunter x Hunter sigue en emisión?",
-    faq_a2: "Sí, Hunter x Hunter sigue en curso. El manga reanudó su publicación en 2022 tras una larga pausa. El capítulo más reciente es el Capítulo 412.",
+    faq_a2: "Sí, Hunter x Hunter sigue en curso. El manga reanudó su publicación en 2022 tras una larga pausa. El capítulo más reciente es el Capítulo 420.",
     faq_q3: "¿Cuál es el último capítulo de Hunter x Hunter?",
-    faq_a3: "El último capítulo publicado es el Capítulo 412. Las nuevas actualizaciones se añaden a HXH Reader inmediatamente tras su publicación oficial en Weekly Shōnen Jump.",
+    faq_a3: "El último capítulo publicado es el Capítulo 420. Las nuevas actualizaciones se añaden a HXH Reader inmediatamente tras su publicación oficial en Weekly Shōnen Jump.",
     faq_q4: "¿Puedo leer Hunter x Hunter en español de forma gratuita?",
     faq_a4: "¡Sí! En HXH Reader ofrecemos todos los capítulos de Hunter x Hunter en español gratis, desde el Capítulo 1 hasta el más reciente.",
     faq_q5: "¿Cuáles son los arcos argumentales de Hunter x Hunter?",
-    faq_a5: "Hunter x Hunter consta de 9 arcos: Examen de Cazador (Cap.1-38), Familia Zoldyck (Cap.39-43), Coliseo del Cielo (Cap.44-63), Ciudad de Yorknew (Cap.64-119), Greed Island (Cap.120-185), Hormigas Quimera (Cap.186-318), Elección del 13° Presidente (Cap.319-339), Expedición al Continente Oscuro (Cap.340-348) y el Concurso de Sucesión (Cap.349-412).",
+    faq_a5: "Hunter x Hunter consta de 9 arcos: Examen de Cazador (Cap.1-38), Familia Zoldyck (Cap.39-43), Coliseo del Cielo (Cap.44-63), Ciudad de Yorknew (Cap.64-119), Greed Island (Cap.120-185), Hormigas Quimera (Cap.186-318), Elección del 13° Presidente (Cap.319-339), Expedición al Continente Oscuro (Cap.340-348) y el Concurso de Sucesión (Cap.349-420).",
     series_name: "Hunter × Hunter",
     author_name: "Yoshihiro Togashi"
   },
@@ -431,22 +432,22 @@ const TRANSLATIONS = {
     seo_title_home: "Hunter x Hunter Manga en Ligne — Lire Gratuit | HXH Reader",
     seo_title_chapters: "Lire Chapitres Hunter x Hunter en Ligne — Liste | HXH Reader",
     seo_title_chapter: "Lire HxH Chapitre {ch}: {title} Gratuit En Ligne | HXH Reader",
-    seo_desc_home: "Lisez le manga Hunter x Hunter en ligne gratuitement. Tous les 412+ chapitres de la série légendaire de Togashi avec Gon, Killua et Nen.",
-    seo_desc_chapters: "Parcourez les 412 chapitres de Hunter x Hunter en ligne. Lisez le manga gratuit en français du chapitre 1 au dernier.",
+    seo_desc_home: "Lisez le manga Hunter x Hunter en ligne gratuitement. Tous les 420+ chapitres de la série légendaire de Togashi avec Gon, Killua et Nen.",
+    seo_desc_chapters: "Parcourez les 420 chapitres de Hunter x Hunter en ligne. Lisez le manga gratuit en français du chapitre 1 au dernier.",
     seo_desc_chapter: "Lisez Hunter x Hunter Chapitre {ch}: \"{title}\" en ligne gratuitement. Fait partie de l'Arc {arc}. Scans de haute qualité.",
     breadcrumb_home: "Accueil",
     breadcrumb_chapters: "Tous les Chapitres",
     breadcrumb_chapter_prefix: "Chapitre",
     faq_q1: "Où puis-je lire le manga Hunter x Hunter en ligne gratuitement ?",
-    faq_a1: "Vous pouvez lire le manga Hunter x Hunter en ligne gratuitement directement sur HXH Reader. L'ensemble des 412+ chapitres est disponible en français.",
+    faq_a1: "Vous pouvez lire le manga Hunter x Hunter en ligne gratuitement directement sur HXH Reader. L'ensemble des 420+ chapitres est disponible en français.",
     faq_q2: "Le manga Hunter x Hunter est-il toujours en cours de parution ?",
-    faq_a2: "Oui, Hunter x Hunter est toujours en cours. Après une longue pause, Yoshihiro Togashi a repris l'écriture en 2022. Le chapitre le plus récent est le Chapitre 412.",
+    faq_a2: "Oui, Hunter x Hunter est toujours en cours. Après une longue pause, Yoshihiro Togashi a repris l'écriture en 2022. Le chapitre le plus récent est le Chapitre 420.",
     faq_q3: "Quel est le dernier chapitre de Hunter x Hunter ?",
-    faq_a3: "Le dernier chapitre publié est le Chapitre 412. Les nouveaux chapitres sont ajoutés à HXH Reader dès leur sortie hebdomadaire dans Weekly Shōnen Jump.",
+    faq_a3: "Le dernier chapitre publié est le Chapitre 420. Les nouveaux chapitres sont ajoutés à HXH Reader dès leur sortie hebdomadaire dans Weekly Shōnen Jump.",
     faq_q4: "Puis-je lire Hunter x Hunter en français gratuitement ?",
     faq_a4: "Oui, vous pouvez lire tous les chapitres de Hunter x Hunter en français gratuitement sur HXH Reader, du premier chapitre au tout dernier.",
     faq_q5: "Quels sont les arcs principaux de Hunter x Hunter ?",
-    faq_a5: "Hunter x Hunter compte 9 arcs : Examen de Hunter (Ch.1–38), Famille Zoldik (Ch.39–43), Tour Céleste (Ch.44–63), Yorknew City (Ch.64–119), Greed Island (Ch.120–185), Fourmis Chimères (Ch.186–318), Élection du 13e Président (Ch.319–339), Expédition du Continent Obscur (Ch.340–348), et la Succession Royale (Ch.349–412).",
+    faq_a5: "Hunter x Hunter compte 9 arcs : Examen de Hunter (Ch.1–38), Famille Zoldik (Ch.39–43), Tour Céleste (Ch.44–63), Yorknew City (Ch.64–119), Greed Island (Ch.120–185), Fourmis Chimères (Ch.186–318), Élection du 13e Président (Ch.319–339), Expédition du Continent Obscur (Ch.340–348), et la Succession Royale (Ch.349–420).",
     series_name: "Hunter × Hunter",
     author_name: "Yoshihiro Togashi"
   },
@@ -455,22 +456,22 @@ const TRANSLATIONS = {
     seo_title_home: "Hunter x Hunter Manga Online Lesen — Kostenlos | HXH Reader",
     seo_title_chapters: "Hunter x Hunter Kapitel Online Lesen — Liste | HXH Reader",
     seo_title_chapter: "HxH Kapitel {ch}: {title} Kostenlos Online Lesen | HXH Reader",
-    seo_desc_home: "Lies Hunter x Hunter Manga online kostenlos. Alle 412+ Kapitel von Togashis legendärer Serie mit Gon, Killua und Nen. Regelmäßige Updates.",
-    seo_desc_chapters: "Durchstöbere alle 412 Hunter x Hunter Kapitel online. Lies kostenlose Mangas auf Deutsch von Kapitel 1 bis zum neuesten.",
+    seo_desc_home: "Lies Hunter x Hunter Manga online kostenlos. Alle 420+ Kapitel von Togashis legendärer Serie mit Gon, Killua und Nen. Regelmäßige Updates.",
+    seo_desc_chapters: "Durchstöbere alle 420 Hunter x Hunter Kapitel online. Lies kostenlose Mangas auf Deutsch von Kapitel 1 bis zum neuesten.",
     seo_desc_chapter: "Lies Hunter x Hunter Kapitel {ch}: \"{title}\" online kostenlos auf Deutsch. Teil des {arc} Arcs. Hochwertige Scans.",
     breadcrumb_home: "Startseite",
     breadcrumb_chapters: "Alle Kapitel",
     breadcrumb_chapter_prefix: "Kapitel",
     faq_q1: "Wo kann ich den Hunter x Hunter Manga online kostenlos lesen?",
-    faq_a1: "Du kannst den Hunter x Hunter Manga online kostenlos hier auf HXH Reader lesen. Alle 412+ Kapitel sind in hervorragender Scan-Qualität verfügbar.",
+    faq_a1: "Du kannst den Hunter x Hunter Manga online kostenlos hier auf HXH Reader lesen. Alle 420+ Kapitel sind in hervorragender Scan-Qualität verfügbar.",
     faq_q2: "Wird der Hunter x Hunter Manga noch fortgesetzt?",
-    faq_a2: "Ja, Hunter x Hunter läuft noch. Die Serie wurde nach einer langen Pause im Jahr 2022 fortgesetzt. Das aktuellste Kapitel ist Kapitel 412.",
+    faq_a2: "Ja, Hunter x Hunter läuft noch. Die Serie wurde nach einer langen Pause im Jahr 2022 fortgesetzt. Das aktuellste Kapitel ist Kapitel 420.",
     faq_q3: "Was ist das neueste Kapitel von Hunter x Hunter?",
-    faq_a3: "Das neueste Kapitel ist Kapitel 412. Neue Kapitel werden auf HXH Reader hochgeladen, sobald sie im Weekly Shōnen Jump erscheinen.",
+    faq_a3: "Das neueste Kapitel ist Kapitel 420. Neue Kapitel werden auf HXH Reader hochgeladen, sobald sie im Weekly Shōnen Jump erscheinen.",
     faq_q4: "Kann ich Hunter x Hunter kostenlos auf Deutsch lesen?",
     faq_a4: "Ja, alle Kapitel von Hunter x Hunter stehen dir kostenlos zur Verfügung, von Kapitel 1 bis zum neuesten Band.",
     faq_q5: "Welches sind die Haupt-Arcs in Hunter x Hunter?",
-    faq_a5: "Hunter x Hunter besteht aus 9 Hauptabschnitten: Hunter-Prüfung (Kap.1-38), Zoldyck-Familie (Kap.39-43), Himmelsarena (Kap.44-63), Yorknew City (Kap.64-119), Greed Island (Kap.120-185), Chimera Ants (Kap.186-318), Wahl des 13. Vorsitzenden (Kap.319-339), Expedition zum Dunklen Kontinent (Kap.340-348) und dem Nachfolge-Wettbewerb (Kap.349-412).",
+    faq_a5: "Hunter x Hunter besteht aus 9 Hauptabschnitten: Hunter-Prüfung (Kap.1-38), Zoldyck-Familie (Kap.39-43), Himmelsarena (Kap.44-63), Yorknew City (Kap.64-119), Greed Island (Kap.120-185), Chimera Ants (Kap.186-318), Wahl des 13. Vorsitzenden (Kap.319-339), Expedition zum Dunklen Kontinent (Kap.340-348) und dem Nachfolge-Wettbewerb (Kap.349-420).",
     series_name: "Hunter × Hunter",
     author_name: "Yoshihiro Togashi"
   },
@@ -479,22 +480,22 @@ const TRANSLATIONS = {
     seo_title_home: "Hunter x Hunter Manga Oku — Türkçe Online | HXH Reader",
     seo_title_chapters: "Hunter x Hunter Bölümleri Oku — Bölüm Listesi | HXH Reader",
     seo_title_chapter: "Hunter x Hunter Bölüm {ch}: {title} Türkçe Oku | HXH Reader",
-    seo_desc_home: "Hunter x Hunter mangasını çevrimiçi ücretsiz oku. Gon, Killua ve Nen içeren Togashi'nin efsanevi serisinin tüm 412+ bölümü burada.",
-    seo_desc_chapters: "Tüm 412 Hunter x Hunter bölümlerine göz atın. Bölüm 1'den en son bölüme kadar Türkçe Hunter x Hunter mangasını ücretsiz okuyun.",
+    seo_desc_home: "Hunter x Hunter mangasını çevrimiçi ücretsiz oku. Gon, Killua ve Nen içeren Togashi'nin efsanevi serisinin tüm 420+ bölümü burada.",
+    seo_desc_chapters: "Tüm 420 Hunter x Hunter bölümlerine göz atın. Bölüm 1'den en son bölüme kadar Türkçe Hunter x Hunter mangasını ücretsiz okuyun.",
     seo_desc_chapter: "Hunter x Hunter Bölüm {ch}: \"{title}\" Türkçe oku. {arc} Arkının bir parçasıdır. Yüksek kaliteli taramalar.",
     breadcrumb_home: "Ana Sayfa",
     breadcrumb_chapters: "Tüm Bölümler",
     breadcrumb_chapter_prefix: "Bölüm",
     faq_q1: "Hunter x Hunter mangasını çevrimiçi nereden ücretsiz okuyabilirim?",
-    faq_a1: "Hunter x Hunter mangasını çevrimiçi olarak doğrudan HXH Reader'da ücretsiz okuyabilirsiniz. 412'den fazla bölümün tamamı yüksek kaliteli görseller eşliğinde sunulmaktadır.",
+    faq_a1: "Hunter x Hunter mangasını çevrimiçi olarak doğrudan HXH Reader'da ücretsiz okuyabilirsiniz. 420'den fazla bölümün tamamı yüksek kaliteli görseller eşliğinde sunulmaktadır.",
     faq_q2: "Hunter x Hunter mangası hala devam ediyor mu?",
-    faq_a2: "Evet, Hunter x Hunter hala devam etmektedir. Seri, uzun bir aranın ardından 2022'de yayınlanmaya devam etti. En güncel bölüm 412. bölümdür.",
+    faq_a2: "Evet, Hunter x Hunter hala devam etmektedir. Seri, uzun bir aranın ardından 2022'de yayınlanmaya devam etti. En güncel bölüm 420. bölümdür.",
     faq_q3: "En son yayınlanan Hunter x Hunter bölümü hangisidir?",
-    faq_a3: "Yayınlanan en son bölüm 412. bölümdür. Yeni bölümler Japonya'da Weekly Shōnen Jump'ta çıkar çıkmaz HXH Reader'a eklenmektedir.",
+    faq_a3: "Yayınlanan en son bölüm 420. bölümdür. Yeni bölümler Japonya'da Weekly Shōnen Jump'ta çıkar çıkmaz HXH Reader'a eklenmektedir.",
     faq_q4: "Hunter x Hunter mangasını Türkçe ücretsiz okuyabilir miyim?",
     faq_a4: "Evet! HXH Reader üzerinden tüm Hunter x Hunter bölümlerine ücretsiz erişebilirsiniz. Bölüm 1'den en son bölüme kadar mobil uyumlu okuyucumuzla okuyun.",
     faq_q5: "Hunter x Hunter'ın ana hikaye arkları nelerdir?",
-    faq_a5: "Hunter x Hunter 9 ana arktan oluşur: Avcı Sınavı (1-38), Zoldyck Ailesi (39-43), Gökyüzü Arenası (44-63), Yorknew Şehri (64-119), Greed Island (120-185), Karınca Arkı (186-318), 13. Başkanlık Seçimi (319-339), Karanlık Kıta Seferi (340-348) ve Veraset Savaşı (349-412).",
+    faq_a5: "Hunter x Hunter 9 ana arktan oluşur: Avcı Sınavı (1-38), Zoldyck Ailesi (39-43), Gökyüzü Arenası (44-63), Yorknew Şehri (64-119), Greed Island (120-185), Karınca Arkı (186-318), 13. Başkanlık Seçimi (319-339), Karanlık Kıta Seferi (340-348) ve Veraset Savaşı (349-420).",
     series_name: "Hunter × Hunter",
     author_name: "Yoshihiro Togashi"
   },
@@ -503,8 +504,8 @@ const TRANSLATIONS = {
     seo_title_home: "ハンターハンター 漫画 — オンラインで読む無料 | HXH Reader",
     seo_title_chapters: "ハンターハンター 最新話 — 全話一覧 | HXH Reader",
     seo_title_chapter: "ハンターハンター 第 {ch} 話: {title} 無料漫画 | HXH Reader",
-    seo_desc_home: "ハンターハンターの漫画をオンラインで無料で読みましょう。冨樫義博の伝説的シリーズ、ゴンやキルア、念能力の全412話以上を掲載。最新話も更新中。",
-    seo_desc_chapters: "ハンターハンターの全412話をオンラインで閲覧可能。第1話から最新話まで、日本語の漫画を無料で読めます。",
+    seo_desc_home: "ハンターハンターの漫画をオンラインで無料で読みましょう。冨樫義博の伝説的シリーズ、ゴンやキルア、念能力の全420話以上を掲載。最新話も更新中。",
+    seo_desc_chapters: "ハンターハンターの全420話をオンラインで閲覧可能。第1話から最新話まで、日本語の漫画を無料で読めます。",
     seo_desc_chapter: "ハンターハンター 第 {ch} 話: 「{title}」の漫画をオンラインで無料閲覧。{arc}編。高画質スキャン画像。",
     breadcrumb_home: "ホーム",
     breadcrumb_chapters: "全話一覧",
@@ -512,9 +513,9 @@ const TRANSLATIONS = {
     faq_q1: "ハンターハンターの漫画はどこで無料で読めますか？",
     faq_a1: "ハンターハンターの全話は、HXH Readerでいつでもオンラインで無料で読むことができます。会員登録や課金は一切不要で、高画質なスキャン画像を楽しめます。",
     faq_q2: "ハンターハンターの漫画はまだ連載中ですか？",
-    faq_a2: "はい、HUNTER×HUNTERは現在も連載中です。現在の最新話は第412話（ブラックホエール号編）となっています。",
+    faq_a2: "はい、HUNTER×HUNTERは現在も連載中です。現在の最新話は第420話（ブラックホエール号編）となっています。",
     faq_q3: "ハンターハンターの最新話はどれですか？",
-    faq_a3: "現在の最新話は「第412話」です。少年ジャンプで新しい話が公開され次第、当サイトでも迅速にアップデートが適用されます。",
+    faq_a3: "現在の最新話は「第420話」です。少年ジャンプで新しい話が公開され次第、当サイトでも迅速にアップデートが適用されます。",
     faq_q4: "全エピソードを最初から最後まで日本語で読めますか？",
     faq_a4: "はい、第1話から最新話まで、すべてのエピソードを無料で読むことができます。スマートフォンにも完全対応しています。",
     faq_q5: "ハンターハンターの主なストーリー編は何ですか？",
@@ -527,22 +528,22 @@ const TRANSLATIONS = {
     seo_title_home: "مانجا هانتر × هانتر مترجمة اون لاين — اقرأ مجاناً | HXH Reader",
     seo_title_chapters: "فصول مانجا هانتر × هانتر كاملة — قائمة الفصول | HXH Reader",
     seo_title_chapter: "اقرأ مانجا هانتر الفصل {ch}: {title} مترجم | HXH Reader",
-    seo_desc_home: "اقرأ مانجا هانتر × هانتر مترجمة اون لاين مجاناً. جميع فصول Hunter x Hunter (412+ فصل) من تأليف يوشيهيرو توغاشي مع غون وكيلوا والنين.",
-    seo_desc_chapters: "تصفح جميع فصول مانجا هانتر × هانتر (412 فصل) مترجمة اون لاين. اقرأ مانجا هانتر من الفصل الأول إلى الأخير مجاناً.",
+    seo_desc_home: "اقرأ مانجا هانتر × هانتر مترجمة اون لاين مجاناً. جميع فصول Hunter x Hunter (420+ فصل) من تأليف يوشيهيرو توغاشي مع غون وكيلوا والنين.",
+    seo_desc_chapters: "تصفح جميع فصول مانجا هانتر × هانتر (420 فصل) مترجمة اون لاين. اقرأ مانجا هانتر من الفصل الأول إلى الأخير مجاناً.",
     seo_desc_chapter: "اقرأ مانجا هانتر × هانتر الفصل {ch} مترجم: \"{title}\" اون لاين مجاناً. جزء من أرك {arc}. فصول عالية الجودة.",
     breadcrumb_home: "الرئيسية",
     breadcrumb_chapters: "جميع الفصول",
     breadcrumb_chapter_prefix: "الفصل",
     faq_q1: "أين يمكنني قراءة مانجا هانتر × هانتر مترجمة اون لاين مجاناً؟",
-    faq_a1: "يمكنك قراءة مانجا هانتر × هانتر مترجمة مجاناً هنا على موقع HXH Reader. تتوفر الفصول الـ 412+ بجودة عالية وتصفح سريع بدون الحاجة للتسجيل.",
+    faq_a1: "يمكنك قراءة مانجا هانتر × هانتر مترجمة مجاناً هنا على موقع HXH Reader. تتوفر الفصول الـ 420+ بجودة عالية وتصفح سريع بدون الحاجة للتسجيل.",
     faq_q2: "هل مانغا هانتر × هانتر لا تزال مستمرة؟",
-    faq_a2: "نعم، مانجا هانتر × هانتر مستمرة ولم تنتهِ بعد. الفصل الأحدث هو الفصل 412 في أرك حرب الخلافة على متن سفينة الحوت الأسود.",
+    faq_a2: "نعم، مانجا هانتر × هانتر مستمرة ولم تنتهِ بعد. الفصل الأحدث هو الفصل 420 في أرك حرب الخلافة على متن سفينة الحوت الأسود.",
     faq_q3: "ما هو الفصل الأخير والجديد في هانتر؟",
-    faq_a3: "الفصل الأخير المتوفر حالياً هو الفصل 412. يتم إضافة الفصول الجديدة فور صدورها وترجمتها مباشرة بعد النشر الرسمي في مجلة شونين جمب.",
+    faq_a3: "الفصل الأخير المتوفر حالياً هو الفصل 420. يتم إضافة الفصول الجديدة فور صدورها وترجمتها مباشرة بعد النشر الرسمي في مجلة شونين جمب.",
     faq_q4: "هل يمكنني قراءة جميع الفصول باللغة العربية مجاناً؟",
-    faq_a4: "نعم! يوفر لك موقعنا إمكانية قراءة جميع فصول هانتر × هانتر مجاناً، بدءاً من الفصل الأول وحتى الفصل 412.",
+    faq_a4: "نعم! يوفر لك موقعنا إمكانية قراءة جميع فصول هانتر × هانتر مجاناً، بدءاً من الفصل الأول وحتى الفصل 420.",
     faq_q5: "ما هي أركات هانتر × هانتر بترتيب الفصول؟",
-    faq_a5: "تتكون السلسلة من 9 أركات: اختبار الصيادين (1-38)، عائلة زولديك (39-43)، برج القوة (44-63)، مدينة يوركنيو (64-119)، جزيرة الطمع (120-185)، نمل الكيميرا (186-318)، انتخاب رئيس الصيادين (319-339)، القارة المظلمة (340-348) وحرب الخلافة (349-412).",
+    faq_a5: "تتكون السلسلة من 9 أركات: اختبار الصيادين (1-38)، عائلة زولديك (39-43)، برج القوة (44-63)، مدينة يوركنيو (64-119)، جزيرة الطمع (120-185)، نمل الكيميرا (186-318)، انتخاب رئيس الصيادين (319-339)، القارة المظلمة (340-348) وحرب الخلافة (349-420).",
     series_name: "هنتر × هنتر",
     author_name: "يوشيهيرو توغاشي"
   }
@@ -565,12 +566,12 @@ const LOCALE_MAP = { en: 'en_US', es: 'es_ES', fr: 'fr_FR', de: 'de_DE', tr: 'tr
 function t(key, langCode) {
   const raw = (TRANSLATIONS[langCode] && TRANSLATIONS[langCode][key]) ||
               (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
-  const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
-  const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 419;
+  const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
+  const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 420;
   return raw
     .replace(/\{ch\}/g, latestNum)
     .replace(/\{count\}/g, totalCount)
-    .replace(/\b412\b/g, latestNum);
+    .replace(/\b(412|419)\b/g, latestNum);
 }
 
 function getArcName(arcId, langCode) {
@@ -748,7 +749,7 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
+      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
       const nextNum = chNum < maxCh ? chNum + 1 : null;
       const articleSchema = {
         "@type": "Article",
@@ -800,8 +801,8 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     const htmlLang = langCode === 'JP' ? 'ja' : langCode.toLowerCase();
     const htmlDir  = langCode === 'AR' ? ' dir="rtl"' : '';
 
-    const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
-    const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 419;
+    const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
+    const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 420;
 
     let parsedHtml = html
       .replace(/<html([^>]*) lang="[^"]*"([^>]*)>/, `<html$1 lang="${htmlLang}"${htmlDir}$2>`)
@@ -830,7 +831,7 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
       const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
       const arcName = arc ? getArcName(arc.id, langCode) : '';
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 419;
+      const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
       const nextNum = chNum < maxCh ? chNum + 1 : null;
 
       const ssrChapterHtml = `
