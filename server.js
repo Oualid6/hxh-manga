@@ -915,61 +915,9 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
 
     // ── Inject SSR HTML body content for chapter & chapters views ──
     if (pageType === 'chapter') {
-      const chNum = parseInt(param);
-      const chData = CHAPTERS_LIST.find(c => c.number === chNum);
-      const isSoon = chData && chData.status === 'coming-soon';
-      const chTitle = chData ? chData.title : `Chapter ${chNum}`;
-      const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
-      const arcName = arc ? getArcName(arc.id, langCode) : '';
-      const prevNum = chNum > 1 ? chNum - 1 : null;
-      const availableChapters = CHAPTERS_LIST.filter(c => c.status !== 'coming-soon');
-      const maxCh = availableChapters.length > 0 ? availableChapters[availableChapters.length - 1].number : 420;
-      const nextNum = (!isSoon && chNum < maxCh) ? chNum + 1 : null;
-
-      let ssrChapterHtml = '';
-      if (isSoon) {
-        ssrChapterHtml = `
-        <article class="ssr-chapter-container coming-soon-card" style="max-width:800px;margin:2rem auto;padding:2.5rem 1.5rem;background:rgba(20,23,34,0.95);border-radius:16px;color:#f4f4f5;border:1px solid rgba(255,255,255,0.12);text-align:center;">
-          <header style="margin-bottom:1.5rem;">
-            <span style="display:inline-block;padding:0.35rem 1rem;background:rgba(253,216,53,0.15);border:1px solid rgba(253,216,53,0.3);border-radius:9999px;font-size:0.85rem;color:#FDD835;font-weight:700;letter-spacing:0.8px;margin-bottom:1rem;">CHAPTER ${chNum} — COMING SOON</span>
-            <h1 style="font-size:2.2rem;font-weight:900;color:#ffffff;margin-bottom:0.5rem;line-height:1.2;">Hunter x Hunter Chapter ${chNum}</h1>
-          </header>
-          <p style="font-size:1.05rem;line-height:1.7;color:#b0bec5;margin-bottom:2rem;max-width:600px;margin-left:auto;margin-right:auto;">
-            Hunter x Hunter Chapter ${chNum} is not available yet. Join our Telegram group to get notified when Chapter ${chNum} is released.
-          </p>
-          <div style="margin-bottom:2rem;">
-            <a href="https://t.me/ManganexChannel" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:10px;padding:0.85rem 1.75rem;background:#0088cc;color:#ffffff;border-radius:10px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 20px rgba(0,136,204,0.35);">
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.6 4.61-1.88 5.13-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.16-.04.25z"/></svg>
-              Join Telegram Group
-            </a>
-          </div>
-          <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:1.5rem;">
-            ${prevNum ? `<a href="/${langPrefix}/chapter/${prevNum}" style="padding:0.6rem 1.2rem;background:#222222;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,0.1);">‹ Previous Chapter</a>` : ''}
-            <a href="/${langPrefix}/chapters" style="padding:0.6rem 1.2rem;background:#E53935;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Chapter List</a>
-            <span style="padding:0.6rem 1.2rem;background:#161922;color:#78909c;border-radius:8px;font-weight:600;cursor:not-allowed;opacity:0.6;">Next Chapter ›</span>
-          </div>
-        </article>`;
-      } else {
-        ssrChapterHtml = `
-        <article class="ssr-chapter-container" style="max-width:900px;margin:2rem auto;padding:1.5rem;background:rgba(24,24,27,0.9);border-radius:12px;color:#f4f4f5;border:1px solid #27272a;">
-          <header style="margin-bottom:1.5rem;">
-            <h1 style="font-size:2rem;font-weight:800;color:#ffffff;margin-bottom:0.5rem;">Hunter x Hunter Chapter ${chNum}: ${chTitle}</h1>
-            ${arcName ? `<span style="display:inline-block;padding:0.25rem 0.75rem;background:#3f3f46;border-radius:9999px;font-size:0.85rem;color:#e4e4e7;font-weight:500;">${arcName}</span>` : ''}
-          </header>
-          <p style="font-size:1.05rem;line-height:1.6;color:#d4d4d8;margin-bottom:1.5rem;">
-            Read Hunter x Hunter Chapter ${chNum} online free. Official manga release translated into ${langCode}. Follow Gon Freecss and Killua Zoldyck on their Hunter adventures.
-          </p>
-          <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:1rem;">
-            ${prevNum ? `<a href="/${langPrefix}/chapter/${prevNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">‹ ${t('breadcrumb_chapter_prefix', langCode)} ${prevNum}</a>` : ''}
-            <a href="/${langPrefix}/chapters" style="padding:0.6rem 1.2rem;background:#ef4444;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapters', langCode)}</a>
-            ${nextNum ? `<a href="/${langPrefix}/chapter/${nextNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapter_prefix', langCode)} ${nextNum} ›</a>` : ''}
-          </div>
-        </article>`;
-      }
-
       parsedHtml = parsedHtml
         .replace('<main id="home-view">', '<main id="home-view" class="hidden">')
-        .replace('<div id="reader-view" class="hidden">', `<div id="reader-view">\n${ssrChapterHtml}`);
+        .replace('<div id="reader-view" class="hidden">', '<div id="reader-view">');
     } else if (pageType === 'chapters') {
       const ssrTableRows = CHAPTERS_LIST.slice().reverse().map(c => `
         <tr>

@@ -611,10 +611,7 @@ function readChapter(chNum, updateHash = true) {
   
   // Chapter info block with SEO intro paragraph (uses i18n)
   if (isSoon) {
-    readerChapterInfo.innerHTML = `
-      <h2>Hunter x Hunter Chapter ${chNum}</h2>
-      <p class="reader-intro-text">Hunter x Hunter Chapter ${chNum} is coming soon. Join our Telegram group to get notified when Chapter ${chNum} is released.</p>
-    `;
+    readerChapterInfo.innerHTML = '';
   } else {
     readerChapterInfo.innerHTML = `
       <h2>${titleText}</h2>
