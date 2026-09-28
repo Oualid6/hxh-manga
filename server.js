@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const { Readable } = require('stream');
 
 const PORT = process.env.PORT || 8000;
 
@@ -342,6 +343,83 @@ function addSecurityHeaders(res, extra = {}) {
   }
 }
 
+// ── Proxy Security & Rate Limiting ──
+const ALLOWED_IMAGE_HOSTS = [
+  'weebcentral.com',
+  'planeptune.us',
+  'mangadex.org'
+];
+
+function isAllowedImageUrl(rawUrl) {
+  if (!rawUrl || typeof rawUrl !== 'string') {
+    return { valid: false, code: 400, reason: 'Missing url parameter' };
+  }
+
+  let parsed;
+  try {
+    parsed = new URL(rawUrl);
+  } catch (e) {
+    return { valid: false, code: 400, reason: 'Invalid URL format' };
+  }
+
+  if (parsed.protocol !== 'https:') {
+    return { valid: false, code: 403, reason: 'Forbidden protocol: HTTPS required' };
+  }
+
+  const hostname = parsed.hostname.toLowerCase();
+
+  // SSRF protection: reject localhost, loopbacks, private/internal IPs
+  if (!hostname ||
+      hostname === 'localhost' ||
+      hostname === '127.0.0.1' ||
+      hostname === '0.0.0.0' ||
+      hostname === '::1' ||
+      hostname.startsWith('127.') ||
+      hostname.startsWith('10.') ||
+      hostname.startsWith('192.168.') ||
+      hostname.startsWith('169.254.') ||
+      /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(hostname) ||
+      hostname.endsWith('.local') ||
+      hostname.endsWith('.internal') ||
+      /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname) ||
+      hostname.includes(':')
+  ) {
+    return { valid: false, code: 403, reason: 'Forbidden host address' };
+  }
+
+  const isAllowedHost = ALLOWED_IMAGE_HOSTS.some(allowed => {
+    return hostname === allowed || hostname.endsWith('.' + allowed);
+  });
+
+  if (!isAllowedHost) {
+    return { valid: false, code: 403, reason: 'Domain not in image allowlist' };
+  }
+
+  return { valid: true };
+}
+
+const proxyRateLimitMap = new Map();
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, data] of proxyRateLimitMap.entries()) {
+    if (now - data.resetTime > 60000) {
+      proxyRateLimitMap.delete(ip);
+    }
+  }
+}, 60000);
+
+function isProxyRateLimited(ip) {
+  const now = Date.now();
+  let record = proxyRateLimitMap.get(ip);
+  if (!record || (now - record.resetTime > 60000)) {
+    record = { count: 1, resetTime: now };
+    proxyRateLimitMap.set(ip, record);
+    return false;
+  }
+  record.count++;
+  return record.count > 120;
+}
+
 // ── Today's date for sitemap lastmod ──
 function todayISO() {
   return new Date().toISOString().split('T')[0];
@@ -566,8 +644,9 @@ const LOCALE_MAP = { en: 'en_US', es: 'es_ES', fr: 'fr_FR', de: 'de_DE', tr: 'tr
 function t(key, langCode) {
   const raw = (TRANSLATIONS[langCode] && TRANSLATIONS[langCode][key]) ||
               (TRANSLATIONS['EN'] && TRANSLATIONS['EN'][key]) || key;
-  const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
-  const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 420;
+  const availableChapters = CHAPTERS_LIST.filter(c => c.status !== 'coming-soon');
+  const latestNum = availableChapters.length > 0 ? availableChapters[availableChapters.length - 1].number : 420;
+  const totalCount = availableChapters.length > 0 ? availableChapters.length : 420;
   return raw
     .replace(/\{ch\}/g, latestNum)
     .replace(/\{count\}/g, totalCount)
@@ -676,12 +755,18 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     } else if (pageType === 'chapter') {
       const chNum  = parseInt(param);
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
+      const isSoon = chData && chData.status === 'coming-soon';
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
       const arcName = arc ? getArcName(arc.id, langCode) : '';
       pagePath = `/${langPrefix}/chapter/${chNum}`;
-      title = t('seo_title_chapter', langCode).replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
-      desc  = t('seo_desc_chapter', langCode).replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+      if (isSoon) {
+        title = `Hunter x Hunter Chapter ${chNum} - Manga Online | HXH Reader`;
+        desc  = `Hunter x Hunter Chapter ${chNum} is coming soon. Join our Telegram group to get notified when the new chapter is released.`;
+      } else {
+        title = t('seo_title_chapter', langCode).replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+        desc  = t('seo_desc_chapter', langCode).replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+      }
     }
 
     const pageUrl = `${siteUrl}${pagePath}`;
@@ -747,23 +832,27 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     } else if (pageType === 'chapter') {
       const chNum = parseInt(param);
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
+      const isSoon = chData && chData.status === 'coming-soon';
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh   = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
-      const nextNum = chNum < maxCh ? chNum + 1 : null;
+      const availableChapters = CHAPTERS_LIST.filter(c => c.status !== 'coming-soon');
+      const maxCh   = availableChapters.length > 0 ? availableChapters[availableChapters.length - 1].number : 420;
+      const nextNum = (!isSoon && chNum < maxCh) ? chNum + 1 : null;
       const articleSchema = {
         "@type": "Article",
         "headline": title,
         "description": desc,
         "url": pageUrl,
         "image": coverUrl,
-        "datePublished": "1998-03-03",
-        "dateModified": todayISO(),
         "author": { "@type": "Person", "name": authorName },
         "publisher": { "@type": "Organization", "name": "HXH Reader", "url": siteUrl },
         "isPartOf": { "@type": "BookSeries", "name": seriesName, "url": siteUrl },
         "inLanguage": langPrefix
       };
+      if (!isSoon) {
+        articleSchema.datePublished = "1998-03-03";
+        articleSchema.dateModified = todayISO();
+      }
       if (prevNum) articleSchema.previousWork = { "@type": "Article", "url": `${siteUrl}/${langPrefix}/chapter/${prevNum}` };
       if (nextNum) articleSchema.nextWork     = { "@type": "Article", "url": `${siteUrl}/${langPrefix}/chapter/${nextNum}` };
 
@@ -801,8 +890,9 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     const htmlLang = langCode === 'JP' ? 'ja' : langCode.toLowerCase();
     const htmlDir  = langCode === 'AR' ? ' dir="rtl"' : '';
 
-    const latestNum = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
-    const totalCount = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST.length : 420;
+    const availableChaptersCount = CHAPTERS_LIST.filter(c => c.status !== 'coming-soon');
+    const latestNum = availableChaptersCount.length > 0 ? availableChaptersCount[availableChaptersCount.length - 1].number : 420;
+    const totalCount = availableChaptersCount.length > 0 ? availableChaptersCount.length : 420;
 
     let parsedHtml = html
       .replace(/<html([^>]*) lang="[^"]*"([^>]*)>/, `<html$1 lang="${htmlLang}"${htmlDir}$2>`)
@@ -827,28 +917,55 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
     if (pageType === 'chapter') {
       const chNum = parseInt(param);
       const chData = CHAPTERS_LIST.find(c => c.number === chNum);
+      const isSoon = chData && chData.status === 'coming-soon';
       const chTitle = chData ? chData.title : `Chapter ${chNum}`;
       const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
       const arcName = arc ? getArcName(arc.id, langCode) : '';
       const prevNum = chNum > 1 ? chNum - 1 : null;
-      const maxCh = CHAPTERS_LIST.length > 0 ? CHAPTERS_LIST[CHAPTERS_LIST.length - 1].number : 420;
-      const nextNum = chNum < maxCh ? chNum + 1 : null;
+      const availableChapters = CHAPTERS_LIST.filter(c => c.status !== 'coming-soon');
+      const maxCh = availableChapters.length > 0 ? availableChapters[availableChapters.length - 1].number : 420;
+      const nextNum = (!isSoon && chNum < maxCh) ? chNum + 1 : null;
 
-      const ssrChapterHtml = `
-      <article class="ssr-chapter-container" style="max-width:900px;margin:2rem auto;padding:1.5rem;background:rgba(24,24,27,0.9);border-radius:12px;color:#f4f4f5;border:1px solid #27272a;">
-        <header style="margin-bottom:1.5rem;">
-          <h1 style="font-size:2rem;font-weight:800;color:#ffffff;margin-bottom:0.5rem;">Hunter x Hunter Chapter ${chNum}: ${chTitle}</h1>
-          ${arcName ? `<span style="display:inline-block;padding:0.25rem 0.75rem;background:#3f3f46;border-radius:9999px;font-size:0.85rem;color:#e4e4e7;font-weight:500;">${arcName}</span>` : ''}
-        </header>
-        <p style="font-size:1.05rem;line-height:1.6;color:#d4d4d8;margin-bottom:1.5rem;">
-          Read Hunter x Hunter Chapter ${chNum} online free. Official manga release translated into ${langCode}. Follow Gon Freecss and Killua Zoldyck on their Hunter adventures.
-        </p>
-        <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:1rem;">
-          ${prevNum ? `<a href="/${langPrefix}/chapter/${prevNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">‹ ${t('breadcrumb_chapter_prefix', langCode)} ${prevNum}</a>` : ''}
-          <a href="/${langPrefix}/chapters" style="padding:0.6rem 1.2rem;background:#ef4444;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapters', langCode)}</a>
-          ${nextNum ? `<a href="/${langPrefix}/chapter/${nextNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapter_prefix', langCode)} ${nextNum} ›</a>` : ''}
-        </div>
-      </article>`;
+      let ssrChapterHtml = '';
+      if (isSoon) {
+        ssrChapterHtml = `
+        <article class="ssr-chapter-container coming-soon-card" style="max-width:800px;margin:2rem auto;padding:2.5rem 1.5rem;background:rgba(20,23,34,0.95);border-radius:16px;color:#f4f4f5;border:1px solid rgba(255,255,255,0.12);text-align:center;">
+          <header style="margin-bottom:1.5rem;">
+            <span style="display:inline-block;padding:0.35rem 1rem;background:rgba(253,216,53,0.15);border:1px solid rgba(253,216,53,0.3);border-radius:9999px;font-size:0.85rem;color:#FDD835;font-weight:700;letter-spacing:0.8px;margin-bottom:1rem;">CHAPTER ${chNum} — COMING SOON</span>
+            <h1 style="font-size:2.2rem;font-weight:900;color:#ffffff;margin-bottom:0.5rem;line-height:1.2;">Hunter x Hunter Chapter ${chNum}</h1>
+          </header>
+          <p style="font-size:1.05rem;line-height:1.7;color:#b0bec5;margin-bottom:2rem;max-width:600px;margin-left:auto;margin-right:auto;">
+            Hunter x Hunter Chapter ${chNum} is not available yet. Join our Telegram group to get notified when Chapter ${chNum} is released.
+          </p>
+          <div style="margin-bottom:2rem;">
+            <a href="https://t.me/ManganexChannel" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:10px;padding:0.85rem 1.75rem;background:#0088cc;color:#ffffff;border-radius:10px;text-decoration:none;font-weight:700;font-size:1rem;box-shadow:0 4px 20px rgba(0,136,204,0.35);">
+              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.6 4.61-1.88 5.13-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.16-.04.25z"/></svg>
+              Join Telegram Group
+            </a>
+          </div>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:1.5rem;">
+            ${prevNum ? `<a href="/${langPrefix}/chapter/${prevNum}" style="padding:0.6rem 1.2rem;background:#222222;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;border:1px solid rgba(255,255,255,0.1);">‹ Previous Chapter</a>` : ''}
+            <a href="/${langPrefix}/chapters" style="padding:0.6rem 1.2rem;background:#E53935;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">Chapter List</a>
+            <span style="padding:0.6rem 1.2rem;background:#161922;color:#78909c;border-radius:8px;font-weight:600;cursor:not-allowed;opacity:0.6;">Next Chapter ›</span>
+          </div>
+        </article>`;
+      } else {
+        ssrChapterHtml = `
+        <article class="ssr-chapter-container" style="max-width:900px;margin:2rem auto;padding:1.5rem;background:rgba(24,24,27,0.9);border-radius:12px;color:#f4f4f5;border:1px solid #27272a;">
+          <header style="margin-bottom:1.5rem;">
+            <h1 style="font-size:2rem;font-weight:800;color:#ffffff;margin-bottom:0.5rem;">Hunter x Hunter Chapter ${chNum}: ${chTitle}</h1>
+            ${arcName ? `<span style="display:inline-block;padding:0.25rem 0.75rem;background:#3f3f46;border-radius:9999px;font-size:0.85rem;color:#e4e4e7;font-weight:500;">${arcName}</span>` : ''}
+          </header>
+          <p style="font-size:1.05rem;line-height:1.6;color:#d4d4d8;margin-bottom:1.5rem;">
+            Read Hunter x Hunter Chapter ${chNum} online free. Official manga release translated into ${langCode}. Follow Gon Freecss and Killua Zoldyck on their Hunter adventures.
+          </p>
+          <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-top:1rem;">
+            ${prevNum ? `<a href="/${langPrefix}/chapter/${prevNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">‹ ${t('breadcrumb_chapter_prefix', langCode)} ${prevNum}</a>` : ''}
+            <a href="/${langPrefix}/chapters" style="padding:0.6rem 1.2rem;background:#ef4444;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapters', langCode)}</a>
+            ${nextNum ? `<a href="/${langPrefix}/chapter/${nextNum}" style="padding:0.6rem 1.2rem;background:#27272a;color:#fff;border-radius:8px;text-decoration:none;font-weight:600;">${t('breadcrumb_chapter_prefix', langCode)} ${nextNum} ›</a>` : ''}
+          </div>
+        </article>`;
+      }
 
       parsedHtml = parsedHtml
         .replace('<main id="home-view">', '<main id="home-view" class="hidden">')
@@ -936,22 +1053,55 @@ const server = http.createServer(async (req, res) => {
   // ── 1. Proxy Route ──
   if (pathname === '/proxy-image') {
     const imageUrl = parsedUrl.query.url;
-    if (!imageUrl) { res.writeHead(400, { 'Content-Type': 'text/plain' }); res.end('Missing url parameter'); return; }
+    const validation = isAllowedImageUrl(imageUrl);
+    if (!validation.valid) {
+      res.writeHead(validation.code, { 'Content-Type': 'text/plain' });
+      res.end(validation.reason);
+      return;
+    }
+
+    const clientIp = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1').split(',')[0].trim();
+    if (isProxyRateLimited(clientIp)) {
+      res.writeHead(429, { 'Content-Type': 'text/plain', 'Retry-After': '60' });
+      res.end('Rate limit exceeded. Try again later.');
+      return;
+    }
+
     try {
       const imageRes = await fetch(imageUrl, {
-        headers: { 'Referer': 'https://weebcentral.com/', 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
+        headers: {
+          'Referer': 'https://weebcentral.com/',
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        },
         signal: AbortSignal.timeout(15000)
       });
-      if (!imageRes.ok) { res.writeHead(imageRes.status, { 'Content-Type': 'text/plain' }); res.end(`Failed: ${imageRes.statusText}`); return; }
-      const contentType = imageRes.headers.get('content-type') || 'image/png';
-      addSecurityHeaders(res, { 'Cache-Control': 'public, max-age=86400' });
+
+      if (!imageRes.ok) {
+        res.writeHead(502, { 'Content-Type': 'text/plain' });
+        res.end('Upstream image request failed');
+        return;
+      }
+
+      const contentType = imageRes.headers.get('content-type') || '';
+      if (!contentType.toLowerCase().startsWith('image/')) {
+        res.writeHead(502, { 'Content-Type': 'text/plain' });
+        res.end('Invalid content type from upstream');
+        return;
+      }
+
+      addSecurityHeaders(res, { 'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable' });
       res.writeHead(200, { 'Content-Type': contentType });
-      const arrayBuffer = await imageRes.arrayBuffer();
-      res.end(Buffer.from(arrayBuffer));
+
+      if (imageRes.body && typeof Readable.fromWeb === 'function') {
+        Readable.fromWeb(imageRes.body).pipe(res);
+      } else {
+        const arrayBuffer = await imageRes.arrayBuffer();
+        res.end(Buffer.from(arrayBuffer));
+      }
     } catch (err) {
       console.error('Proxy error:', err.message);
-      res.writeHead(500, { 'Content-Type': 'text/plain' });
-      res.end('Internal Server Error');
+      res.writeHead(502, { 'Content-Type': 'text/plain' });
+      res.end('Bad Gateway');
     }
     return;
   }

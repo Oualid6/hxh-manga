@@ -1679,6 +1679,12 @@ const CHAPTERS = [
   {
     "number": 420,
     "title": "Chapter 420"
+  },
+  {
+    "number": 421,
+    "title": "Chapter 421",
+    "status": "coming-soon"
   }
 
 ];
+

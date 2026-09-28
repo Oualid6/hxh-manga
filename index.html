@@ -76,6 +76,10 @@
       <a href="/" class="nav-link active" id="nav-home" data-i18n="nav_home">Home</a>
       <a href="/chapters" class="nav-link" id="nav-chapters" data-i18n="nav_chapters">Chapters</a>
       <a href="#about-section" class="nav-link" data-i18n="nav_about">About</a>
+      <a href="https://t.me/ManganexChannel" target="_blank" rel="noopener noreferrer" class="nav-link nav-telegram" aria-label="Telegram Channel">
+        <svg class="nav-telegram-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.6 4.61-1.88 5.13-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.16-.04.25z"/></svg>
+        <span data-i18n="nav_telegram">Telegram</span>
+      </a>
     </nav>
     <div class="nav-search">
       <label for="chapter-search" class="sr-only">Search Hunter x Hunter chapters</label>
@@ -122,6 +126,10 @@
     <a href="/" data-i18n="nav_home">Home</a>
     <a href="/chapters" data-i18n="nav_chapters">Chapters</a>
     <a href="#about-section" data-i18n="nav_about">About</a>
+    <a href="https://t.me/ManganexChannel" target="_blank" rel="noopener noreferrer" class="mobile-telegram" aria-label="Telegram Channel">
+      <svg class="nav-telegram-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.6 4.61-1.88 5.13-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.16-.04.25z"/></svg>
+      <span data-i18n="nav_telegram">Telegram</span>
+    </a>
   </div>
 </header>
 
@@ -153,6 +161,11 @@
         <button class="btn-secondary" id="hero-latest-btn" onclick="readLatestChapter()" aria-label="Read Hunter x Hunter latest chapter">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"/></svg>
           <span data-i18n="btn_latest_chapter">Latest Chapter</span>
+        </button>
+        <button class="btn-secondary btn-ch421" id="hero-ch421-btn" onclick="navigateTo('/chapter/421')" aria-label="Read Hunter x Hunter Chapter 421 Coming Soon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Chapter 421</span>
+          <span class="btn-badge-soon" data-i18n="badge_coming_soon">COMING SOON</span>
         </button>
       </div>
       <div class="hero-stats" aria-label="Hunter x Hunter manga statistics">

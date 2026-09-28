@@ -237,6 +237,7 @@ function updateRoute() {
 
 // ── View Management ──
 function showHome(updateHash = true) {
+  cleanupReaderSession();
   currentState.currentView = 'home';
   homeView.classList.remove('hidden');
   chapterListView.classList.add('hidden');
@@ -255,6 +256,7 @@ function showHome(updateHash = true) {
 }
 
 function showChapterList(updateHash = true) {
+  cleanupReaderSession();
   currentState.currentView = 'chapters';
   homeView.classList.add('hidden');
   chapterListView.classList.remove('hidden');
@@ -405,6 +407,7 @@ function renderRecentChapters() {
   // Show the last 6 chapters
   const recent = CHAPTERS.slice(-6).reverse();
   recent.forEach(ch => {
+    const isSoon = ch.status === 'coming-soon';
     const card = document.createElement('div');
     card.className = 'recent-card animate-in';
     card.onclick = () => {
@@ -414,9 +417,9 @@ function renderRecentChapters() {
     card.innerHTML = `
       <div class="recent-ch-num">${formatChapterNumber(ch.number)}</div>
       <div class="recent-ch-title">${ch.title}</div>
-      <div class="recent-ch-date">${t('latest_release')}</div>
+      <div class="recent-ch-date">${isSoon ? '<span style="color:var(--gold);font-weight:700;">Coming Soon</span>' : t('latest_release')}</div>
       <div class="recent-read-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        ${isSoon ? '<span style="font-size:0.7rem;font-weight:700;color:var(--gold);">SOON</span>' : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'}
       </div>
     `;
     recentGrid.appendChild(card);
@@ -461,14 +464,18 @@ function renderChapterTable() {
   }
 
   filtered.forEach(ch => {
+    const isSoon = ch.status === 'coming-soon';
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${ch.number}</td>
-      <td class="ch-title-cell"><a href="/chapter/${ch.number}">${ch.title}</a></td>
-      <td class="ch-date-cell hide-mobile">${t('released_label')}</td>
+      <td class="ch-title-cell">
+        <a href="/chapter/${ch.number}">${ch.title}</a>
+        ${isSoon ? '<span class="badge-table-soon">Coming Soon</span>' : ''}
+      </td>
+      <td class="ch-date-cell hide-mobile">${isSoon ? 'Coming Soon' : t('released_label')}</td>
       <td>
-        <a href="/chapter/${ch.number}" class="ch-read-btn" aria-label="${t('read_chapter')} ${ch.number}">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        <a href="/chapter/${ch.number}" class="ch-read-btn" aria-label="${isSoon ? 'Chapter ' + ch.number + ' Coming Soon' : t('read_chapter') + ' ' + ch.number}">
+          ${isSoon ? '<span style="font-size:0.7rem;font-weight:700;">SOON</span>' : '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>'}
         </a>
       </td>
     `;
@@ -504,7 +511,61 @@ function toggleSort() {
 }
 
 // ── Reader View & Dynamic Page Loader ──
+let currentReaderSession = null;
+
+function cleanupReaderSession() {
+  if (currentReaderSession) {
+    currentReaderSession.active = false;
+    if (currentReaderSession.abortController) {
+      try {
+        currentReaderSession.abortController.abort();
+      } catch (_) {}
+    }
+    if (currentReaderSession.observer) {
+      try {
+        currentReaderSession.observer.disconnect();
+      } catch (_) {}
+      currentReaderSession.observer = null;
+    }
+    if (currentReaderSession.pageStates) {
+      currentReaderSession.pageStates.clear();
+    }
+    currentReaderSession = null;
+  }
+}
+
+function triggerImageLoad(img, session, isRetry = false) {
+  if (!session || !session.active || !img) return;
+
+  const state = session.pageStates.get(img);
+
+  // Prevent duplicate requests if already loading or loaded
+  if (!isRetry && (state === 'loading' || state === 'loaded')) {
+    return;
+  }
+
+  session.pageStates.set(img, 'loading');
+
+  const proxiedUrl = img.dataset.proxiedUrl;
+  if (!proxiedUrl) return;
+
+  // On retry, append timestamp to force fresh attempt for failed image
+  const targetSrc = isRetry ? `${proxiedUrl}&retry=${Date.now()}` : proxiedUrl;
+  img.src = targetSrc;
+
+  // Handle cached images that load synchronously
+  if (img.complete && img.naturalWidth > 0) {
+    session.pageStates.set(img, 'loaded');
+    if (img.parentNode) {
+      const sk = img.parentNode.querySelector('.page-skeleton');
+      if (sk) sk.remove();
+    }
+    img.classList.add('loaded');
+  }
+}
+
 function readChapter(chNum, updateHash = true) {
+  cleanupReaderSession();
   currentState.currentView = 'reader';
   currentState.currentChapter = chNum;
 
@@ -518,25 +579,29 @@ function readChapter(chNum, updateHash = true) {
 
   // Find chapter details
   const chData = CHAPTERS.find(c => c.number === chNum);
-  const titleText = chData ? `${formatChapterNumber(chNum)} — ${chData.title}` : `${t('chapter_word')} ${chNum}`;
-  readerTitle.textContent = titleText;
+  const isSoon = chData && chData.status === 'coming-soon';
+  const titleText = chData ? `${formatChapterNumber(chNum)}${isSoon ? '' : ' — ' + chData.title}` : `${t('chapter_word')} ${chNum}`;
+  readerTitle.textContent = isSoon ? `Hunter x Hunter Chapter ${chNum}` : titleText;
   
-  const newTitle = chData
-    ? `Read HxH Chapter ${chNum}: ${chData.title} Online Free | HXH Reader`
-    : `Hunter x Hunter Chapter ${chNum} | HXH Reader`;
+  const newTitle = isSoon
+    ? `Hunter x Hunter Chapter ${chNum} - Manga Online | HXH Reader`
+    : chData
+      ? `Read HxH Chapter ${chNum}: ${chData.title} Online Free | HXH Reader`
+      : `Hunter x Hunter Chapter ${chNum} | HXH Reader`;
   document.title = newTitle;
   trackPageView(`/chapter/${chNum}`, newTitle);
   
-
-
   // Update header/navigation UI details
   readerChIndicator.textContent = `${chNum} / ${CHAPTERS.length}`;
   
+  const availableChapters = CHAPTERS.filter(c => c.status !== 'coming-soon');
+  const maxAvailableNum = availableChapters.length > 0 ? availableChapters[availableChapters.length - 1].number : 420;
+
   // Set prev/next buttons disabled states
   prevChBtn.disabled = chNum <= 1;
   prevChBtn2.disabled = chNum <= 1;
-  nextChBtn.disabled = chNum >= CHAPTERS.length;
-  nextChBtn2.disabled = chNum >= CHAPTERS.length;
+  nextChBtn.disabled = isSoon || chNum >= maxAvailableNum;
+  nextChBtn2.disabled = isSoon || chNum >= maxAvailableNum;
 
   // Load Arc association info
   const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
@@ -545,30 +610,73 @@ function readChapter(chNum, updateHash = true) {
   const arcName = translatedArc ? translatedArc.name : (arc ? arc.name : '');
   
   // Chapter info block with SEO intro paragraph (uses i18n)
-  readerChapterInfo.innerHTML = `
-    <h2>${titleText}</h2>
-    ${arc ? `<p class="reader-arc-label" style="color: ${arc.color}">${arcName}</p>` : ''}
-    <p class="reader-intro-text">${t('read_chapter_prefix')} <strong>${titleText}</strong>.${arc ? ' ' + t('read_arc_prefix') + ' <strong>' + arcName + '</strong>.' : ''} ${t('read_nav_hint')}</p>
-  `;
+  if (isSoon) {
+    readerChapterInfo.innerHTML = `
+      <h2>Hunter x Hunter Chapter ${chNum}</h2>
+      <p class="reader-intro-text">Hunter x Hunter Chapter ${chNum} is coming soon. Join our Telegram group to get notified when Chapter ${chNum} is released.</p>
+    `;
+  } else {
+    readerChapterInfo.innerHTML = `
+      <h2>${titleText}</h2>
+      ${arc ? `<p class="reader-arc-label" style="color: ${arc.color}">${arcName}</p>` : ''}
+      <p class="reader-intro-text">${t('read_chapter_prefix')} <strong>${titleText}</strong>.${arc ? ' ' + t('read_arc_prefix') + ' <strong>' + arcName + '</strong>.' : ''} ${t('read_nav_hint')}</p>
+    `;
+  }
 
   // Update breadcrumb
   const bcCurrent = document.getElementById('reader-breadcrumb-current');
-  if (bcCurrent) bcCurrent.textContent = `${t('breadcrumb_chapter_prefix')} ${chNum}${chData ? ': ' + chData.title : ''}`;
+  if (bcCurrent) bcCurrent.textContent = `${t('breadcrumb_chapter_prefix')} ${chNum}${chData && !isSoon ? ': ' + chData.title : ''}`;
 
   // Update SEO meta tags for this chapter
   updateClientSeo();
   trackPageView(`/chapter/${chNum}`, document.title);
 
-  // Start reading images — fetch all page URLs from the server first
   readerPages.innerHTML = '';
   const suggestedSection = document.getElementById('suggested-section');
   if (suggestedSection) suggestedSection.innerHTML = '';
-  loadChapterPages(chNum);
+
+  if (isSoon) {
+    renderComingSoonPage(chNum);
+  } else {
+    loadChapterPages(chNum);
+  }
+}
+
+function renderComingSoonPage(chNum) {
+  const card = document.createElement('div');
+  card.className = 'coming-soon-card animate-in';
+  card.innerHTML = `
+    <div class="coming-soon-badge">CHAPTER ${chNum} — COMING SOON</div>
+    <h1 class="coming-soon-title">Hunter x Hunter Chapter ${chNum}</h1>
+    <p class="coming-soon-text">Hunter x Hunter Chapter ${chNum} is not available yet. Join our Telegram group to get notified when Chapter ${chNum} is released.</p>
+    <div style="margin-top: 24px;">
+      <a href="https://t.me/ManganexChannel" target="_blank" rel="noopener noreferrer" class="telegram-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.24.37-.49 1.02-.75 3.99-1.74 6.66-2.89 8.01-3.45 3.82-1.6 4.61-1.88 5.13-1.89.11 0 .37.03.54.17.14.12.18.28.2.45-.02.07-.02.16-.04.25z"/></svg>
+        <span>Join Telegram Group</span>
+      </a>
+    </div>
+  `;
+  readerPages.appendChild(card);
+  renderSuggestedChapters(chNum);
 }
 
 async function loadChapterPages(chNum) {
+  cleanupReaderSession();
+
+  const session = {
+    chNum: chNum,
+    active: true,
+    abortController: new AbortController(),
+    observer: null,
+    pageStates: new Map()
+  };
+  currentReaderSession = session;
+
   // Guard: user may have navigated away
-  if (currentState.currentView !== 'reader' || currentState.currentChapter !== chNum) return;
+  if (currentState.currentView !== 'reader' || currentState.currentChapter !== chNum) {
+    cleanupReaderSession();
+    return;
+  }
 
   // Show a loading placeholder while we fetch the page list
   const loadingMsg = document.createElement('div');
@@ -586,16 +694,21 @@ async function loadChapterPages(chNum) {
 
   let images = [];
   try {
-    const res = await fetch(`/chapter-images?ch=${chNum}`);
+    const res = await fetch(`/chapter-images?ch=${chNum}`, {
+      signal: session.abortController.signal
+    });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     images = data.images || [];
   } catch (err) {
+    if (err.name === 'AbortError') return;
     console.error('Failed to load chapter images:', err);
   }
 
-  // Guard again after async
-  if (currentState.currentView !== 'reader' || currentState.currentChapter !== chNum) return;
+  // Guard again after async fetch
+  if (!session.active || currentState.currentView !== 'reader' || currentState.currentChapter !== chNum) {
+    return;
+  }
 
   // Remove loading placeholder
   const msg = document.getElementById('chapter-loading-msg');
@@ -613,11 +726,35 @@ async function loadChapterPages(chNum) {
     return;
   }
 
-  // Render all pages with lazy loading and descriptive alt text
+  // Render all pages with progressive lazy loading
   const chData = CHAPTERS.find(c => c.number === chNum);
   const chTitleText = chData ? chData.title : `Chapter ${chNum}`;
 
+  const INITIAL_IMMEDIATE_PAGES = 3;
+
+  // Setup IntersectionObserver for progressive scroll loading with 600px root margin
+  if ('IntersectionObserver' in window) {
+    session.observer = new IntersectionObserver((entries, observer) => {
+      if (!session.active) return;
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const container = entry.target;
+          const img = container.querySelector('.reader-page-img');
+          if (img) {
+            triggerImageLoad(img, session);
+          }
+          observer.unobserve(container);
+        }
+      });
+    }, {
+      rootMargin: '600px 0px 600px 0px',
+      threshold: 0.01
+    });
+  }
+
   images.forEach((rawUrl, idx) => {
+    if (!session.active) return;
+
     const pageContainer = document.createElement('div');
     pageContainer.className = 'reader-page-container';
 
@@ -627,13 +764,18 @@ async function loadChapterPages(chNum) {
 
     const img = document.createElement('img');
     img.className = 'reader-page-img';
-    // Descriptive, keyword-rich alt text for image SEO
     img.alt = `Hunter x Hunter Chapter ${chNum}: "${chTitleText}" — Page ${idx + 1}`;
     img.decoding = 'async';
 
     const proxiedUrl = `/proxy-image?url=${encodeURIComponent(rawUrl)}`;
+    img.dataset.proxiedUrl = proxiedUrl;
+    img.dataset.pageIdx = idx + 1;
+
+    session.pageStates.set(img, 'not-loaded');
 
     const handleLoadSuccess = () => {
+      if (!session.active) return;
+      session.pageStates.set(img, 'loaded');
       if (skeleton.parentNode) {
         skeleton.remove();
       }
@@ -643,10 +785,15 @@ async function loadChapterPages(chNum) {
     img.onload = handleLoadSuccess;
 
     img.onerror = () => {
+      if (!session.active) return;
+      session.pageStates.set(img, 'failed');
       if (skeleton.parentNode) {
         skeleton.remove();
       }
       img.style.display = 'none';
+
+      const existingCard = pageContainer.querySelector('.page-error-card');
+      if (existingCard) existingCard.remove();
 
       const errorCard = document.createElement('div');
       errorCard.className = 'page-error-card';
@@ -659,27 +806,28 @@ async function loadChapterPages(chNum) {
       `;
       const retryBtn = errorCard.querySelector('.btn-retry-page');
       retryBtn.onclick = () => {
+        if (!session.active) return;
         errorCard.remove();
-        pageContainer.appendChild(skeleton);
+        if (!pageContainer.querySelector('.page-skeleton')) {
+          pageContainer.appendChild(skeleton);
+        }
         img.style.display = '';
-        img.src = `${proxiedUrl}&t=${Date.now()}`;
+        triggerImageLoad(img, session, true);
       };
       pageContainer.appendChild(errorCard);
     };
 
-    // Assign src after handlers registered
-    img.src = proxiedUrl;
-
-    // Handle cached images that load immediately before handler binding
-    if (img.complete && img.naturalWidth > 0) {
-      handleLoadSuccess();
-    }
-
     pageContainer.appendChild(img);
     readerPages.appendChild(pageContainer);
+
+    // Initial pages (1-3) load immediately; remaining pages are registered with observer
+    if (idx < INITIAL_IMMEDIATE_PAGES || !session.observer) {
+      triggerImageLoad(img, session);
+    } else {
+      session.observer.observe(pageContainer);
+    }
   });
 
-  // After images are rendered, show suggested chapters
   renderSuggestedChapters(chNum);
 }
 
@@ -888,6 +1036,7 @@ const TRANSLATIONS = {
     nav_home: "Home",
     nav_chapters: "Chapters",
     nav_about: "About",
+    nav_telegram: "Telegram",
     search_placeholder: "Search chapters…",
     hero_ongoing: "Ongoing · Chapter 412",
     hero_by: "by",
@@ -992,6 +1141,7 @@ const TRANSLATIONS = {
     nav_home: "Accueil",
     nav_chapters: "Chapitres",
     nav_about: "À propos",
+    nav_telegram: "Telegram",
     search_placeholder: "Rechercher des chapitres…",
     hero_ongoing: "En cours · Chapitre 412",
     hero_by: "par",
@@ -1095,6 +1245,7 @@ const TRANSLATIONS = {
     nav_home: "Inicio",
     nav_chapters: "Capítulos",
     nav_about: "Acerca de",
+    nav_telegram: "Telegram",
     search_placeholder: "Buscar capítulos…",
     hero_ongoing: "En curso · Capítulo 412",
     hero_by: "por",
@@ -1198,6 +1349,7 @@ const TRANSLATIONS = {
     nav_home: "Startseite",
     nav_chapters: "Kapitel",
     nav_about: "Über",
+    nav_telegram: "Telegram",
     search_placeholder: "Kapitel suchen…",
     hero_ongoing: "Laufend · Kapitel 412",
     hero_by: "von",
@@ -1301,6 +1453,7 @@ const TRANSLATIONS = {
     nav_home: "Ana Sayfa",
     nav_chapters: "Bölümler",
     nav_about: "Hakkında",
+    nav_telegram: "Telegram",
     search_placeholder: "Bölüm ara…",
     hero_ongoing: "Devam Ediyor · Bölüm 412",
     hero_by: "yazar",
@@ -1404,6 +1557,7 @@ const TRANSLATIONS = {
     nav_home: "ホーム",
     nav_chapters: "全話一覧",
     nav_about: "作品紹介",
+    nav_telegram: "Telegram",
     search_placeholder: "話を検索…",
     hero_ongoing: "連載中 · 第412話",
     hero_by: "著者：",
@@ -1507,6 +1661,7 @@ const TRANSLATIONS = {
     nav_home: "الرئيسية",
     nav_chapters: "الفصول",
     nav_about: "حول",
+    nav_telegram: "تليجرام",
     search_placeholder: "ابحث عن فصول…",
     hero_ongoing: "مستمر · الفصل 412",
     hero_by: "بواسطة",
@@ -1802,12 +1957,18 @@ function updateClientSeo() {
   } else if (currentState.currentView === 'reader') {
     const chNum  = currentState.currentChapter;
     const chData = CHAPTERS.find(c => c.number === chNum);
+    const isSoon = chData && chData.status === 'coming-soon';
     const chTitle = chData ? chData.title : `Chapter ${chNum}`;
     const arc = ARCS.find(a => chNum >= a.start && chNum <= a.end);
     const arcTrans = arc && ARC_TRANSLATIONS[lang] ? ARC_TRANSLATIONS[lang][arc.id] : null;
     const arcName = arcTrans ? arcTrans.name : (arc ? arc.name : '');
-    title = t('seo_title_chapter').replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
-    desc  = t('seo_desc_chapter').replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+    if (isSoon) {
+      title = `Hunter x Hunter Chapter ${chNum} - Manga Online | HXH Reader`;
+      desc  = `Hunter x Hunter Chapter ${chNum} is coming soon. Join our Telegram group to get notified when the new chapter is released.`;
+    } else {
+      title = t('seo_title_chapter').replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+      desc  = t('seo_desc_chapter').replace('{ch}', chNum).replace('{title}', chTitle).replace('{arc}', arcName);
+    }
     pagePath = `/${langPrefix}/chapter/${chNum}`;
   } else {
     title = t('seo_title_home');
@@ -1989,8 +2150,9 @@ function t(key) {
 
 /** Update hero badge, stats counter, latest chapter button, and footer links dynamically */
 function updateDynamicUi() {
-  const totalCount = CHAPTERS.length;
-  const latestCh   = totalCount > 0 ? CHAPTERS[totalCount - 1] : { number: 420, title: 'Chapter 420' };
+  const availableChapters = CHAPTERS.filter(c => c.status !== 'coming-soon');
+  const totalCount = availableChapters.length;
+  const latestCh   = totalCount > 0 ? availableChapters[totalCount - 1] : { number: 420, title: 'Chapter 420' };
   const latestNum  = latestCh.number;
 
   // 1. Hero badge: "Ongoing · Chapter {LATEST_CHAPTER.number}"
@@ -2014,13 +2176,19 @@ function updateDynamicUi() {
     startBtn.setAttribute('aria-label', 'Start reading Hunter x Hunter from Chapter 1');
   }
 
-  // 4. Homepage statistics: CHAPTERS.length chapters available
+  // 4. Chapter 421 Hero button
+  const ch421Btn = document.getElementById('hero-ch421-btn');
+  if (ch421Btn) {
+    ch421Btn.onclick = () => navigateTo('/chapter/421');
+  }
+
+  // 5. Homepage statistics: available chapters count
   const statCount = document.getElementById('stat-chapters-count');
   if (statCount) {
     statCount.textContent = totalCount;
   }
 
-  // 5. Footer latest link
+  // 6. Footer latest link
   const footerLatest = document.getElementById('footer-latest-link');
   if (footerLatest) {
     footerLatest.href = `/chapter/${latestNum}`;
@@ -2029,7 +2197,8 @@ function updateDynamicUi() {
 }
 
 function readLatestChapter() {
-  const latestNum = CHAPTERS.length > 0 ? CHAPTERS[CHAPTERS.length - 1].number : 1;
+  const availableChapters = CHAPTERS.filter(c => c.status !== 'coming-soon');
+  const latestNum = availableChapters.length > 0 ? availableChapters[availableChapters.length - 1].number : 420;
   navigateTo(`/chapter/${latestNum}`);
 }
 
