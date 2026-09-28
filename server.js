@@ -971,22 +971,23 @@ function serveIndexWithSeo(req, res, pageType, param = null, langCode = 'EN', la
         .replace('<main id="home-view">', '<main id="home-view" class="hidden">')
         .replace('<div id="reader-view" class="hidden">', `<div id="reader-view">\n${ssrChapterHtml}`);
     } else if (pageType === 'chapters') {
-      const chaptersGridHtml = `
-      <section class="ssr-chapters-container" style="max-width:1100px;margin:2rem auto;padding:1rem;">
-        <h1 style="font-size:2rem;font-weight:800;color:#ffffff;margin-bottom:1rem;">Hunter x Hunter — All Manga Chapters</h1>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;">
-          ${CHAPTERS_LIST.map(c => `
-            <a href="/${langPrefix}/chapter/${c.number}" style="display:block;padding:1rem;background:#18181b;border-radius:8px;text-decoration:none;color:#fff;border:1px solid #27272a;transition:border-color 0.2s;">
-              <div style="font-weight:700;font-size:1.05rem;">Chapter ${c.number}: ${c.title}</div>
-              <div style="font-size:0.85rem;color:#a1a1aa;margin-top:0.3rem;">Read Chapter ${c.number} Online</div>
+      const ssrTableRows = CHAPTERS_LIST.slice().reverse().map(c => `
+        <tr>
+          <td>${c.number}</td>
+          <td class="ch-title-cell"><a href="/${langPrefix}/chapter/${c.number}">Chapter ${c.number}: ${c.title}</a></td>
+          <td class="ch-date-cell hide-mobile">${t('released_label', langCode)}</td>
+          <td>
+            <a href="/${langPrefix}/chapter/${c.number}" class="ch-read-btn" aria-label="Read Chapter ${c.number}">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </a>
-          `).join('')}
-        </div>
-      </section>`;
+          </td>
+        </tr>
+      `).join('');
 
       parsedHtml = parsedHtml
         .replace('<main id="home-view">', '<main id="home-view" class="hidden">')
-        .replace('<div id="chapter-list-view" class="hidden">', `<div id="chapter-list-view">\n${chaptersGridHtml}`);
+        .replace('<div id="chapter-list-view" class="hidden">', '<div id="chapter-list-view">')
+        .replace('<tbody id="cl-tbody">', `<tbody id="cl-tbody">\n${ssrTableRows}`);
     }
 
     addSecurityHeaders(res, { 'Cache-Control': 'no-store' });
